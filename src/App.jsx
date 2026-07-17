@@ -16,6 +16,7 @@ import { isFirebaseConfigured } from './firebase';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'entry', 'list', 'settings'
+  const [editingJob, setEditingJob] = useState(null);
   const [localities, setLocalities] = useState([]);
   const [activeCampaign, setActiveCampaign] = useState(null);
   const [jobs, setJobs] = useState([]);
@@ -104,7 +105,7 @@ export default function App() {
             title={!activeCampaign ? 'Debes crear una campaña activa primero' : ''}
           >
             <PlusCircle size={20} />
-            <span>Ingresar Trabajo</span>
+            <span>{editingJob ? '✏️ Editando Trabajo' : 'Ingresar Trabajo'}</span>
           </button>
 
           <button 
@@ -170,8 +171,14 @@ export default function App() {
               campaign={activeCampaign} 
               localities={localities} 
               jobs={jobs}
+              editingJob={editingJob}
               onJobSaved={() => {
-                // optional callback
+                setEditingJob(null);
+                setActiveTab('list');
+              }}
+              onCancelEdit={() => {
+                setEditingJob(null);
+                setActiveTab('list');
               }}
             />
           )}
@@ -181,6 +188,10 @@ export default function App() {
               campaign={activeCampaign} 
               jobs={jobs} 
               localities={localities}
+              onEditJob={(job) => {
+                setEditingJob(job);
+                setActiveTab('entry');
+              }}
               onJobsUpdated={() => {
                 // optional callback
               }}

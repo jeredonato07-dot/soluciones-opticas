@@ -3,6 +3,7 @@ import {
   Search, 
   MapPin, 
   Trash2, 
+  Edit,
   Package, 
   FileSpreadsheet, 
   Truck, 
@@ -13,7 +14,7 @@ import {
 } from 'lucide-react';
 import { saveTrabajo, deleteTrabajo } from '../services/dataService';
 
-export default function JobList({ campaign, jobs, localities, onJobsUpdated }) {
+export default function JobList({ campaign, jobs, localities, onEditJob, onJobsUpdated }) {
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'logistics'
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocFilter, setSelectedLocFilter] = useState('');
@@ -267,7 +268,7 @@ export default function JobList({ campaign, jobs, localities, onJobsUpdated }) {
                   <th width="110">Pedido Lab</th>
                   <th width="110">Total Est.</th>
                   <th width="120">Estado</th>
-                  <th width="60" className="text-center">Borrar</th>
+                  <th width="80" className="text-center">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -324,14 +325,25 @@ export default function JobList({ campaign, jobs, localities, onJobsUpdated }) {
                         <span className="font-semibold text-success-dark">{formatMoney(job.precioTotal)}</span>
                       </td>
                       <td>{renderStateBadge(job)}</td>
-                      <td className="text-center">
-                        <button 
-                          className="btn-icon text-danger" 
-                          onClick={() => handleDelete(job.id)}
-                          title="Eliminar trabajo"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                      <td>
+                        <div className="flex-align-center justify-center gap-2">
+                          <button 
+                            type="button"
+                            className="btn-icon text-primary" 
+                            onClick={() => onEditJob && onEditJob(job)}
+                            title="Editar trabajo"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button 
+                            type="button"
+                            className="btn-icon text-danger" 
+                            onClick={() => handleDelete(job.id)}
+                            title="Eliminar trabajo"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

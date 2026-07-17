@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Copy, Plus, RotateCcw, AlertTriangle, Search, Sparkles, Check } from 'lucide-react';
+import { Copy, Plus, RotateCcw, AlertTriangle, Search, Sparkles, Check, Edit } from 'lucide-react';
 import priceList from '../data/lista_de_precios.json';
 import { getNextRefCode, saveTrabajo } from '../services/dataService';
 
@@ -83,7 +83,7 @@ const getShortName = (item) => {
   return baseName;
 };
 
-export default function JobForm({ campaign, localities, jobs = [], onJobSaved }) {
+export default function JobForm({ campaign, localities, jobs = [], editingJob = null, onJobSaved, onCancelEdit }) {
   const [localidadId, setLocalidadId] = useState(() => localStorage.getItem('optica_last_localidad_id') || '');
   const [isChangingLocality, setIsChangingLocality] = useState(false);
   const [refCode, setRefCode] = useState('');
@@ -119,8 +119,48 @@ export default function JobForm({ campaign, localities, jobs = [], onJobSaved })
 
   const isPaseDeCristales = calibradoProceso === 'Pase de Cristales';
 
-  // Load next code when campaign, localidad, or job changes
+  // Synchronize form when editingJob changes
   useEffect(() => {
+    if (editingJob) {
+      setLocalidadId(editingJob.localidadId);
+      setRefCode(editingJob.refCode);
+      setSequence(editingJob.sequence);
+      setPaciente(editingJob.paciente || '');
+      
+      setSelectedOD(editingJob.cristalOD);
+      setSearchOD(editingJob.cristalOD ? editingJob.cristalOD.name : '');
+      
+      setSelectedOI(editingJob.cristalOI);
+      setSearchOI(editingJob.cristalOI ? editingJob.cristalOI.name : '');
+      
+      setCalibradoProceso(editingJob.calibradoProceso || 'Stock');
+      setCalibradoTipo(editingJob.calibradoTipo || 'Aro Completo');
+      setNroPedidoLab(editingJob.nroPedidoLab || '');
+      setEsSinPedir(editingJob.estado === 'Sin Pedir');
+    } else {
+      // Clear form
+      setPaciente('');
+      setSelectedOD(null);
+      setSearchOD('');
+      setSelectedOI(null);
+      setSearchOI('');
+      setCalibradoProceso('Stock');
+      setCalibradoTipo('Aro Completo');
+      setNroPedidoLab('');
+      setEsSinPedir(false);
+      setErrorMsg('');
+      
+      // Restore last localidad
+      const lastLocId = localStorage.getItem('optica_last_localidad_id') || '';
+      setLocalidadId(lastLocId);
+      setIsChangingLocality(false);
+    }
+  }, [editingJob]);
+
+  // Load next code when campaign, localidad, or job changes (ONLY if not editing)
+  useEffect(() => {
+    if (editingJob) return; // Prevent overwriting sequence when editing
+    
     if (campaign && localidadId) {
       const selectedLoc = localities.find(l => l.id === localidadId);
       if (selectedLoc) {
@@ -133,7 +173,7 @@ export default function JobForm({ campaign, localities, jobs = [], onJobSaved })
     } else {
       setRefCode('');
     }
-  }, [campaign, localidadId, localities, refreshTrigger]);
+  }, [campaign, localidadId, localities, refreshTrigger, editingJob]);
 
   // Click outside to close dropdowns
   useEffect(() => {
@@ -275,8 +315,8 @@ export default function JobForm({ campaign, localities, jobs = [], onJobSaved })
       return;
     }
 
-    // Check if refCode already exists in campaign
-    const codeExists = jobs.some(j => j.refCode === refCode);
+    // Check if refCode already exists in campaign (excluding the current job if editing)
+    const codeExists = jobs.some(j => j.refCode === refCode && (!editingJob || j.id !== editingJob.id));
     if (codeExists) {
       setErrorMsg(`El código de referencia "${refCode}" ya existe en esta campaña. Se está recalculando el siguiente número disponible...`);
       setRefreshTrigger(prev => prev + 1);
@@ -302,13 +342,17 @@ export default function JobForm({ campaign, localities, jobs = [], onJobSaved })
         calibradoNombre: pricing.calName,
         precioTotal: pricing.total,
         nroPedidoLab: nroPedidoLab.trim(),
-        estado: esSinPedir ? 'Sin Pedir' : 'Pedido Lab',
-        createdAt: new Date().toISOString()
+        estado: esSinPedir ? 'Sin Pedir' : (editingJob?.estado || 'Pedido Lab'),
+        createdAt: editingJob ? editingJob.createdAt : new Date().toISOString()
       };
+
+      if (editingJob) {
+        jobData.id = editingJob.id;
+      }
 
       await saveTrabajo(jobData);
       
-      // Reset form but KEEP Localidad
+      // Reset form
       setPaciente('');
       setSelectedOD(null);
       setSearchOD('');
@@ -358,12 +402,21 @@ export default function JobForm({ campaign, localities, jobs = [], onJobSaved })
     <div className="glass-card p-4 max-width-950 mx-auto">
       <div className="card-header border-bottom pb-3 mb-4">
         <h3 className="m-0 flex-align-center gap-2">
-          <Sparkles size={22} className="text-primary" />
-          Ingresar Nuevo Trabajo
+          {editingJob ? (
+            <>
+              <Edit size={22} className="text-warning" />
+              <span>Modificar Trabajo: <strong className="text-warning">{editingJob.refCode}</strong></span>
+            </>
+          ) : (
+            <>
+              <Sparkles size={22} className="text-primary" />
+              <span>Ingresar Nuevo Trabajo</span>
+            </>
+          )}
         </h3>
         {refCode && (
-          <span className="badge badge-primary font-md py-2 px-3">
-            Código Ref: <strong>{refCode}</strong>
+          <span className={`badge ${editingJob ? 'badge-warning-soft text-warning border-warning' : 'badge-primary'} font-md py-2 px-3`}>
+            {editingJob ? 'Guardando Cambios' : <>Código Ref: <strong>{refCode}</strong></>}
           </span>
         )}
       </div>
@@ -412,13 +465,15 @@ export default function JobForm({ campaign, localities, jobs = [], onJobSaved })
                       </div>
                     );
                   })()}
-                  <button
-                    type="button"
-                    className="btn btn-xs btn-outline py-2 px-3"
-                    onClick={() => setIsChangingLocality(true)}
-                  >
-                    Cambiar Pueblo
-                  </button>
+                  {!editingJob && (
+                    <button
+                      type="button"
+                      className="btn btn-xs btn-outline py-2 px-3"
+                      onClick={() => setIsChangingLocality(true)}
+                    >
+                      Cambiar Pueblo
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -738,21 +793,43 @@ export default function JobForm({ campaign, localities, jobs = [], onJobSaved })
               </div>
               
               <div className="flex-column gap-2 justify-center">
-                <button
-                  type="submit"
-                  className="btn btn-primary btn-md flex-align-center gap-2"
-                  disabled={isSubmitting || !campaign || !localidadId}
-                >
-                  <Plus size={18} /> Guardar Trabajo
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-link btn-xs text-muted justify-center"
-                  onClick={handleClear}
-                  disabled={isSubmitting}
-                >
-                  <RotateCcw size={12} /> Limpiar campos
-                </button>
+                {editingJob ? (
+                  <>
+                    <button
+                      type="submit"
+                      className="btn btn-success btn-md flex-align-center gap-2"
+                      disabled={isSubmitting || !campaign || !localidadId}
+                    >
+                      <Check size={18} /> Guardar Cambios
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-outline text-danger border-danger btn-xs py-1 justify-center font-bold"
+                      onClick={onCancelEdit}
+                      disabled={isSubmitting}
+                    >
+                      Cancelar Edición
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="submit"
+                      className="btn btn-primary btn-md flex-align-center gap-2"
+                      disabled={isSubmitting || !campaign || !localidadId}
+                    >
+                      <Plus size={18} /> Guardar Trabajo
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-link btn-xs text-muted justify-center"
+                      onClick={handleClear}
+                      disabled={isSubmitting}
+                    >
+                      <RotateCcw size={12} /> Limpiar campos
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
