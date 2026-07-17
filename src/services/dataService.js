@@ -134,11 +134,26 @@ export const saveLocalidad = async (localidad) => {
   }
 
   const localLocs = await getLocalidades();
-  if (!localLocs.some(l => l.id === localidad.id)) {
+  const idx = localLocs.findIndex(l => l.id === localidad.id);
+  if (idx !== -1) {
+    localLocs[idx] = localidad;
+  } else {
     localLocs.push(localidad);
-    setLocalData(KEYS.LOCALITIES, localLocs);
   }
+  setLocalData(KEYS.LOCALITIES, localLocs);
   return localidad;
+};
+
+export const deleteLocalidad = async (localidadId) => {
+  const db = getFirebaseDb();
+  if (db) {
+    await deleteDoc(doc(db, 'localidades', localidadId));
+    return;
+  }
+
+  const localLocs = await getLocalidades();
+  const filtered = localLocs.filter(l => l.id !== localidadId);
+  setLocalData(KEYS.LOCALITIES, filtered);
 };
 
 

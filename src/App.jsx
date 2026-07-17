@@ -190,6 +190,7 @@ export default function App() {
           {activeTab === 'settings' && (
             <Settings 
               localities={localities} 
+              jobs={jobs}
               activeCampaign={activeCampaign} 
               setActiveCampaign={handleActiveCampaignChange}
               onLocalitiesUpdated={fetchLocalities}

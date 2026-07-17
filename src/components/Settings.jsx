@@ -14,6 +14,7 @@ import {
 import { 
   saveCampana, 
   saveLocalidad, 
+  deleteLocalidad,
   subscribeCampanas, 
   syncLocalToFirebase,
   resetAllData
@@ -22,6 +23,7 @@ import { isFirebaseConfigured, resetFirebase, getFirebaseDb } from '../firebase'
 
 export default function Settings({ 
   localities, 
+  jobs = [],
   activeCampaign, 
   setActiveCampaign, 
   onLocalitiesUpdated 
@@ -35,6 +37,9 @@ export default function Settings({
   // Localities state
   const [newLocName, setNewLocName] = useState('');
   const [newLocCode, setNewLocCode] = useState('');
+  const [editingLocId, setEditingLocId] = useState(null);
+  const [editLocName, setEditLocName] = useState('');
+  const [editLocCode, setEditLocCode] = useState('');
 
   // Sync / Firebase state
   const [firebaseConfigured, setFirebaseConfigured] = useState(isFirebaseConfigured());
@@ -131,6 +136,53 @@ export default function Settings({
       if (onLocalitiesUpdated) onLocalitiesUpdated();
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const handleStartEditLocality = (loc) => {
+    const hasJobs = jobs.some(j => j.localidadId === loc.id);
+    if (hasJobs) {
+      alert(`No puedes editar la localidad "${loc.name}" porque tiene trabajos cargados.`);
+      return;
+    }
+    setEditingLocId(loc.id);
+    setEditLocName(loc.name);
+    setEditLocCode(loc.code);
+  };
+
+  const handleSaveEditLocality = async (locId) => {
+    if (!editLocName.trim() || !editLocCode.trim()) {
+      alert("El nombre y el código son requeridos.");
+      return;
+    }
+    try {
+      await saveLocalidad({
+        id: locId,
+        name: editLocName.trim(),
+        code: editLocCode.trim().toUpperCase()
+      });
+      setEditingLocId(null);
+      if (onLocalitiesUpdated) onLocalitiesUpdated();
+    } catch (e) {
+      console.error(e);
+      alert("Error al guardar los cambios.");
+    }
+  };
+
+  const handleDeleteLocality = async (loc) => {
+    const hasJobs = jobs.some(j => j.localidadId === loc.id);
+    if (hasJobs) {
+      alert(`No puedes eliminar la localidad "${loc.name}" porque tiene trabajos cargados.`);
+      return;
+    }
+    if (window.confirm(`¿Estás seguro de que deseas eliminar la localidad "${loc.name}"?`)) {
+      try {
+        await deleteLocalidad(loc.id);
+        if (onLocalitiesUpdated) onLocalitiesUpdated();
+      } catch (e) {
+        console.error(e);
+        alert("Error al eliminar la localidad.");
+      }
     }
   };
 
@@ -392,12 +444,87 @@ export default function Settings({
             <div>
               <h4 className="m-0 mb-2">Localidades Registradas</h4>
               <div className="localities-settings-grid">
-                {localities.map(loc => (
-                  <div key={loc.id} className="locality-settings-card">
-                    <div className="locality-letter-badge">{loc.code}</div>
-                    <div className="locality-card-name">{loc.name}</div>
-                  </div>
-                ))}
+                {localities.map(loc => {
+                  const hasJobs = jobs.some(j => j.localidadId === loc.id);
+                  const isEditing = editingLocId === loc.id;
+                  
+                  return (
+                    <div key={loc.id} className="locality-settings-card justify-between w-full">
+                      {isEditing ? (
+                        // Inline Edit Form
+                        <div className="flex-align-center gap-2 w-full">
+                          <input
+                            type="text"
+                            className="form-control text-center uppercase font-bold"
+                            style={{ width: '45px', padding: '4px', minWidth: '45px' }}
+                            maxLength="2"
+                            value={editLocCode}
+                            onChange={(e) => setEditLocCode(e.target.value)}
+                          />
+                          <input
+                            type="text"
+                            className="form-control"
+                            style={{ padding: '4px 8px' }}
+                            value={editLocName}
+                            onChange={(e) => setEditLocName(e.target.value)}
+                          />
+                          <button
+                            type="button"
+                            className="btn btn-xs btn-success py-1 px-2"
+                            onClick={() => handleSaveEditLocality(loc.id)}
+                          >
+                            Guardar
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-xs btn-outline py-1 px-2"
+                            onClick={() => setEditingLocId(null)}
+                          >
+                            X
+                          </button>
+                        </div>
+                      ) : (
+                        // Normal Display
+                        <>
+                          <div className="flex-align-center gap-2">
+                            <div className="locality-letter-badge font-bold">{loc.code}</div>
+                            <div className="locality-card-name font-semibold">{loc.name}</div>
+                          </div>
+                          
+                          <div className="flex-align-center gap-2">
+                            {hasJobs ? (
+                              <span 
+                                className="text-muted font-xs flex-align-center gap-1 opacity-70 cursor-help"
+                                title="Esta localidad ya tiene trabajos cargados y no se puede modificar."
+                              >
+                                🔒 Bloqueado
+                              </span>
+                            ) : (
+                              <>
+                                <button
+                                  type="button"
+                                  className="btn btn-xs btn-outline py-1 px-2"
+                                  onClick={() => handleStartEditLocality(loc)}
+                                  title="Editar localidad"
+                                >
+                                  Editar
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn btn-xs btn-outline text-danger border-danger py-1 px-2"
+                                  onClick={() => handleDeleteLocality(loc)}
+                                  title="Eliminar localidad"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
