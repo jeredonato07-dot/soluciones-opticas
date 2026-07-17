@@ -472,6 +472,7 @@ export const resetAllData = async () => {
     try {
       const campSnap = await getDocs(collection(db, 'campanas'));
       const jobSnap = await getDocs(collection(db, 'trabajos'));
+      const seqSnap = await getDocs(collection(db, 'secuencias'));
       
       const promises = [];
       campSnap.forEach(d => {
@@ -479,6 +480,9 @@ export const resetAllData = async () => {
       });
       jobSnap.forEach(d => {
         promises.push(deleteDoc(doc(db, 'trabajos', d.id)));
+      });
+      seqSnap.forEach(d => {
+        promises.push(deleteDoc(doc(db, 'secuencias', d.id)));
       });
       
       await Promise.all(promises);
