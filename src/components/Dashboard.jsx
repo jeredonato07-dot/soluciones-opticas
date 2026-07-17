@@ -42,9 +42,12 @@ export default function Dashboard({ campaign, jobs, localities }) {
 
   // Calibration types breakdown (per pair/job price)
   const calibrationStats = {
-    'Aro Completo': { count: 0, billing: 0 },
-    'Ranurado': { count: 0, billing: 0 },
-    'Perforado': { count: 0, billing: 0 }
+    'Aro Completo (Stock)': { count: 0, billing: 0 },
+    'Aro Completo (Laboratorio)': { count: 0, billing: 0 },
+    'Ranurado (Stock)': { count: 0, billing: 0 },
+    'Ranurado (Laboratorio)': { count: 0, billing: 0 },
+    'Perforado (Stock)': { count: 0, billing: 0 },
+    'Perforado (Laboratorio)': { count: 0, billing: 0 }
   };
   
   // Lens types breakdown (Stock vs Laboratorio, in pairs)
@@ -56,10 +59,14 @@ export default function Dashboard({ campaign, jobs, localities }) {
   jobs.forEach(job => {
     // Calibrado (always full price)
     const cType = job.calibradoTipo || 'Aro Completo';
-    if (calibrationStats[cType]) {
-      calibrationStats[cType].count++;
-      calibrationStats[cType].billing += (job.calibradoPrecio || 0);
+    const cProcess = job.calibradoProceso || 'Stock';
+    const displayName = `${cType} (${cProcess})`;
+    
+    if (!calibrationStats[displayName]) {
+      calibrationStats[displayName] = { count: 0, billing: 0 };
     }
+    calibrationStats[displayName].count++;
+    calibrationStats[displayName].billing += (job.calibradoPrecio || 0);
 
     // Cristales (OD + OI, priced at 50% per lens)
     if (job.cristalOD) {
