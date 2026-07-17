@@ -365,7 +365,7 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
       
       setRefreshTrigger(prev => prev + 1);
       
-      if (onJobSaved) onJobSaved();
+      if (onJobSaved) onJobSaved(!!editingJob);
       
       document.getElementById('paciente-input')?.focus();
 

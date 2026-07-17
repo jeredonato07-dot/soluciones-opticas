@@ -172,9 +172,11 @@ export default function App() {
               localities={localities} 
               jobs={jobs}
               editingJob={editingJob}
-              onJobSaved={() => {
+              onJobSaved={(isEdit) => {
                 setEditingJob(null);
-                setActiveTab('list');
+                if (isEdit) {
+                  setActiveTab('list');
+                }
               }}
               onCancelEdit={() => {
                 setEditingJob(null);
