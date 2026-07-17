@@ -1,0 +1,740 @@
+[
+  {
+    "id": 1,
+    "rawName": "[Lentes de Stock] Organico Blue Light Cut c/ Antirreflex (Índice: 1.56, Tipo: Stock, Graduación: Esf +/- 6.00 // Esf/Cil +6.00 / -2.00 // -6.00 / +2.00)",
+    "name": "Organico Blue Light Cut c/ Antirreflex (Índice: 1.56, Tipo: Stock, Graduación: Esf +/- 6.00 // Esf/Cil +6.00 / -2.00 // -6.00 / +2.00)",
+    "category": "Lentes de Stock",
+    "type": "Stock",
+    "price": 7249,
+    "priceStr": "$7,249"
+  },
+  {
+    "id": 2,
+    "rawName": "[Lentes de Stock] Organico Blue Light Cut c/ Antirreflex (Índice: 1.56, Tipo: Rango Extendido, Graduación: Esf/Cil +4.00 / -4.00 // -4.00 / -4.00)",
+    "name": "Organico Blue Light Cut c/ Antirreflex (Índice: 1.56, Tipo: Rango Extendido, Graduación: Esf/Cil +4.00 / -4.00 // -4.00 / -4.00)",
+    "category": "Lentes de Stock",
+    "type": "Laboratorio",
+    "price": 15783,
+    "priceStr": "$15,783"
+  },
+  {
+    "id": 3,
+    "rawName": "[Lentes de Stock] Organico Super Blue Asférico c/ Antirreflex Super Hidrofóbico (Índice: 1.60, Tipo: Stock, Graduación: Esf +/- 6.00 // Esf/Cil +4.00 / +2.00 // -6.00 / +2.00)",
+    "name": "Organico Super Blue Asférico c/ Antirreflex Super Hidrofóbico (Índice: 1.60, Tipo: Stock, Graduación: Esf +/- 6.00 // Esf/Cil +4.00 / +2.00 // -6.00 / +2.00)",
+    "category": "Lentes de Stock",
+    "type": "Stock",
+    "price": 22362,
+    "priceStr": "$22,362"
+  },
+  {
+    "id": 4,
+    "rawName": "[Lentes de Stock] Organico Super Blue Asférico c/ Antirreflex Super Hidrofóbico (Índice: 1.60, Tipo: Rango Extendido, Graduación: Esf/Cil -10.00 / -2.00 // +6.00 / -4.00 // -7.00 / -4.00)",
+    "name": "Organico Super Blue Asférico c/ Antirreflex Super Hidrofóbico (Índice: 1.60, Tipo: Rango Extendido, Graduación: Esf/Cil -10.00 / -2.00 // +6.00 / -4.00 // -7.00 / -4.00)",
+    "category": "Lentes de Stock",
+    "type": "Laboratorio",
+    "price": 24945,
+    "priceStr": "$24,945"
+  },
+  {
+    "id": 5,
+    "rawName": "[Lentes de Stock] Organico Super Blue Asférico c/ Antirreflex Super Hidrofóbico (Índice: 1.74, Tipo: Rango Extendido Plus, Graduación: Esf/Cil -10.25 / -2.00 // -12.00 / -2.00 // -12.25 / -15.00)",
+    "name": "Organico Super Blue Asférico c/ Antirreflex Super Hidrofóbico (Índice: 1.74, Tipo: Rango Extendido Plus, Graduación: Esf/Cil -10.25 / -2.00 // -12.00 / -2.00 // -12.25 / -15.00)",
+    "category": "Lentes de Stock",
+    "type": "Laboratorio",
+    "price": 234130,
+    "priceStr": "$234,130"
+  },
+  {
+    "id": 6,
+    "rawName": "[Lentes de Stock] Organico Fotocromático Gris c/ Antirreflex (Índice: 1.56, Tipo: Stock, Graduación: Esf +/- 4.00 // Esf/Cil +4.00 / -2.00 // -4.00 / +2.00)",
+    "name": "Organico Fotocromático Gris c/ Antirreflex (Índice: 1.56, Tipo: Stock, Graduación: Esf +/- 4.00 // Esf/Cil +4.00 / -2.00 // -4.00 / +2.00)",
+    "category": "Lentes de Stock",
+    "type": "Stock",
+    "price": 20159,
+    "priceStr": "$20,159"
+  },
+  {
+    "id": 7,
+    "rawName": "[Lentes de Stock] Blue Fotocromático Gris c/ Antirreflex (Índice: 1.56, Tipo: Stock, Graduación: Esf +/- 4.00 // Esf/Cil +4.00 / -2.00 // -4.00 / +2.00)",
+    "name": "Blue Fotocromático Gris c/ Antirreflex (Índice: 1.56, Tipo: Stock, Graduación: Esf +/- 4.00 // Esf/Cil +4.00 / -2.00 // -4.00 / +2.00)",
+    "category": "Lentes de Stock",
+    "type": "Stock",
+    "price": 44726,
+    "priceStr": "$44,726"
+  },
+  {
+    "id": 8,
+    "rawName": "[Lentes de Stock] Super Blue Fotocromático Gris c/ Antirreflex (Índice: 1.60, Tipo: Stock, Graduación: Esf +/- 4.00 // Esf/Cil +4.00 / -2.00 // -4.00 / +2.00)",
+    "name": "Super Blue Fotocromático Gris c/ Antirreflex (Índice: 1.60, Tipo: Stock, Graduación: Esf +/- 4.00 // Esf/Cil +4.00 / -2.00 // -4.00 / +2.00)",
+    "category": "Lentes de Stock",
+    "type": "Stock",
+    "price": 71155,
+    "priceStr": "$71,155"
+  },
+  {
+    "id": 9,
+    "rawName": "[Monofocal Lab] 1.56 Orgánico Blue Light - Tallado Tradicional CNC (Esferas: +8.00 a -12.00, Cilindros: +/- 6.00)",
+    "name": "1.56 Orgánico Blue Light - Tallado Tradicional CNC (Esferas: +8.00 a -12.00, Cilindros: +/- 6.00)",
+    "category": "Monofocal Lab",
+    "type": "Laboratorio",
+    "price": 40998,
+    "priceStr": "$40,998"
+  },
+  {
+    "id": 10,
+    "rawName": "[Monofocal Lab] 1.56 Orgánico Blue Light - Tallado Digital (Esferas: +8.00 a -12.00, Cilindros: +/- 6.00)",
+    "name": "1.56 Orgánico Blue Light - Tallado Digital (Esferas: +8.00 a -12.00, Cilindros: +/- 6.00)",
+    "category": "Monofocal Lab",
+    "type": "Laboratorio",
+    "price": 64215,
+    "priceStr": "$64,215"
+  },
+  {
+    "id": 11,
+    "rawName": "[Monofocal Lab] 1.56 Orgánico Blue Light c/ Antirreflex Block - Tallado Tradicional CNC (Esferas: +8.00 a -12.00, Cilindros: +/- 6.00)",
+    "name": "1.56 Orgánico Blue Light c/ Antirreflex Block - Tallado Tradicional CNC (Esferas: +8.00 a -12.00, Cilindros: +/- 6.00)",
+    "category": "Monofocal Lab",
+    "type": "Laboratorio",
+    "price": 64478,
+    "priceStr": "$64,478"
+  },
+  {
+    "id": 12,
+    "rawName": "[Monofocal Lab] 1.56 Orgánico Blue Light c/ Antirreflex Block - Tallado Digital (Esferas: +8.00 a -12.00, Cilindros: +/- 6.00)",
+    "name": "1.56 Orgánico Blue Light c/ Antirreflex Block - Tallado Digital (Esferas: +8.00 a -12.00, Cilindros: +/- 6.00)",
+    "category": "Monofocal Lab",
+    "type": "Laboratorio",
+    "price": 96402,
+    "priceStr": "$96,402"
+  },
+  {
+    "id": 13,
+    "rawName": "[Monofocal Lab] 1.60 Orgánico Super Blue Light - Tallado Tradicional CNC (Esferas: +8.00 a -12.00, Cilindros: +/- 6.00)",
+    "name": "1.60 Orgánico Super Blue Light - Tallado Tradicional CNC (Esferas: +8.00 a -12.00, Cilindros: +/- 6.00)",
+    "category": "Monofocal Lab",
+    "type": "Laboratorio",
+    "price": 73595,
+    "priceStr": "$73,595"
+  },
+  {
+    "id": 14,
+    "rawName": "[Monofocal Lab] 1.60 Orgánico Super Blue Light - Tallado Digital (Esferas: +8.00 a -12.00, Cilindros: +/- 6.00)",
+    "name": "1.60 Orgánico Super Blue Light - Tallado Digital (Esferas: +8.00 a -12.00, Cilindros: +/- 6.00)",
+    "category": "Monofocal Lab",
+    "type": "Laboratorio",
+    "price": 110031,
+    "priceStr": "$110,031"
+  },
+  {
+    "id": 15,
+    "rawName": "[Monofocal Lab] 1.60 Orgánico Super Blue Light c/ Antirreflex Block - Tallado Tradicional CNC (Esferas: +8.00 a -12.00, Cilindros: +/- 6.00)",
+    "name": "1.60 Orgánico Super Blue Light c/ Antirreflex Block - Tallado Tradicional CNC (Esferas: +8.00 a -12.00, Cilindros: +/- 6.00)",
+    "category": "Monofocal Lab",
+    "type": "Laboratorio",
+    "price": 96738,
+    "priceStr": "$96,738"
+  },
+  {
+    "id": 16,
+    "rawName": "[Monofocal Lab] 1.60 Orgánico Super Blue Light c/ Antirreflex Block - Tallado Digital (Esferas: +8.00 a -12.00, Cilindros: +/- 6.00)",
+    "name": "1.60 Orgánico Super Blue Light c/ Antirreflex Block - Tallado Digital (Esferas: +8.00 a -12.00, Cilindros: +/- 6.00)",
+    "category": "Monofocal Lab",
+    "type": "Laboratorio",
+    "price": 144633,
+    "priceStr": "$144,633"
+  },
+  {
+    "id": 17,
+    "rawName": "[Monofocal Lab] 1.56 Orgánico Fotocromático Gris - Tallado Tradicional CNC (Esferas: 8.00 a -12.00, Cilindros: +/- 6.00)",
+    "name": "1.56 Orgánico Fotocromático Gris - Tallado Tradicional CNC (Esferas: 8.00 a -12.00, Cilindros: +/- 6.00)",
+    "category": "Monofocal Lab",
+    "type": "Laboratorio",
+    "price": 60522,
+    "priceStr": "$60,522"
+  },
+  {
+    "id": 18,
+    "rawName": "[Monofocal Lab] 1.56 Orgánico Fotocromático Gris - Tallado Digital (Esferas: 8.00 a -12.00, Cilindros: +/- 6.00)",
+    "name": "1.56 Orgánico Fotocromático Gris - Tallado Digital (Esferas: 8.00 a -12.00, Cilindros: +/- 6.00)",
+    "category": "Monofocal Lab",
+    "type": "Laboratorio",
+    "price": 90487,
+    "priceStr": "$90,487"
+  },
+  {
+    "id": 19,
+    "rawName": "[Monofocal Lab] 1.56 Orgánico Fotocromático BLUE - Tallado Tradicional CNC (Esferas: 8.00 a -12.00, Cilindros: +/- 6.00)",
+    "name": "1.56 Orgánico Fotocromático BLUE - Tallado Tradicional CNC (Esferas: 8.00 a -12.00, Cilindros: +/- 6.00)",
+    "category": "Monofocal Lab",
+    "type": "Laboratorio",
+    "price": 84589,
+    "priceStr": "$84,589"
+  },
+  {
+    "id": 20,
+    "rawName": "[Monofocal Lab] 1.56 Orgánico Fotocromático BLUE - Tallado Digital (Esferas: 8.00 a -12.00, Cilindros: +/- 6.00)",
+    "name": "1.56 Orgánico Fotocromático BLUE - Tallado Digital (Esferas: 8.00 a -12.00, Cilindros: +/- 6.00)",
+    "category": "Monofocal Lab",
+    "type": "Laboratorio",
+    "price": 132491,
+    "priceStr": "$132,491"
+  },
+  {
+    "id": 21,
+    "rawName": "[Monofocal Lab] 1.56 Orgánico Fotocromático BLUE c/ Antirreflex Block - Tallado Tradicional CNC (Esferas: 8.00 a -12.00, Cilindros: +/- 6.00)",
+    "name": "1.56 Orgánico Fotocromático BLUE c/ Antirreflex Block - Tallado Tradicional CNC (Esferas: 8.00 a -12.00, Cilindros: +/- 6.00)",
+    "category": "Monofocal Lab",
+    "type": "Laboratorio",
+    "price": 103188,
+    "priceStr": "$103,188"
+  },
+  {
+    "id": 22,
+    "rawName": "[Monofocal Lab] 1.56 Orgánico Fotocromático BLUE c/ Antirreflex Block - Tallado Digital (Esferas: 8.00 a -12.00, Cilindros: +/- 6.00)",
+    "name": "1.56 Orgánico Fotocromático BLUE c/ Antirreflex Block - Tallado Digital (Esferas: 8.00 a -12.00, Cilindros: +/- 6.00)",
+    "category": "Monofocal Lab",
+    "type": "Laboratorio",
+    "price": 162032,
+    "priceStr": "$162,032"
+  },
+  {
+    "id": 23,
+    "rawName": "[Monofocal Lab] 1.56 Orgánico Fotocromático Smart Color - Tallado Tradicional CNC (Esferas: +5.00 a -8.00, Cilindros: +/- 5.00) [Colores: Brown/Green/Blue/Pink/Purple]",
+    "name": "1.56 Orgánico Fotocromático Smart Color - Tallado Tradicional CNC (Esferas: +5.00 a -8.00, Cilindros: +/- 5.00) [Colores: Brown/Green/Blue/Pink/Purple]",
+    "category": "Monofocal Lab",
+    "type": "Laboratorio",
+    "price": 132680,
+    "priceStr": "$132,680"
+  },
+  {
+    "id": 24,
+    "rawName": "[Monofocal Lab] 1.56 Orgánico Fotocromático Smart Color - Tallado Digital (Esferas: +5.00 a -8.00, Cilindros: +/- 5.00) [Colores: Brown/Green/Blue/Pink/Purple]",
+    "name": "1.56 Orgánico Fotocromático Smart Color - Tallado Digital (Esferas: +5.00 a -8.00, Cilindros: +/- 5.00) [Colores: Brown/Green/Blue/Pink/Purple]",
+    "category": "Monofocal Lab",
+    "type": "Laboratorio",
+    "price": 169060,
+    "priceStr": "$169,060"
+  },
+  {
+    "id": 25,
+    "rawName": "[Bifocal] Bif. Flap Top Orgánico Blue Light Cut (Bifocales Flap Top) (Esferas: +5.50 a -4.00, Cilindros: +/- 4.00, Adición: 1.00 a 3.50)",
+    "name": "Bif. Flap Top Orgánico Blue Light Cut (Bifocales Flap Top) (Esferas: +5.50 a -4.00, Cilindros: +/- 4.00, Adición: 1.00 a 3.50)",
+    "category": "Bifocal",
+    "type": "Laboratorio",
+    "price": 46010,
+    "priceStr": "$46,010"
+  },
+  {
+    "id": 26,
+    "rawName": "[Bifocal] Bif. Flap Top Orgánico Fotocromático Gris (Bifocales Flap Top) (Esferas: +5.50 a -4.00, Cilindros: +/- 4.00, Adición: 1.00 a 3.50)",
+    "name": "Bif. Flap Top Orgánico Fotocromático Gris (Bifocales Flap Top) (Esferas: +5.50 a -4.00, Cilindros: +/- 4.00, Adición: 1.00 a 3.50)",
+    "category": "Bifocal",
+    "type": "Laboratorio",
+    "price": 64756,
+    "priceStr": "$64,756"
+  },
+  {
+    "id": 27,
+    "rawName": "[Bifocal] Bif. Kriptock Invisible Organico Blue Light Cut (Bifocal Digital Invisible) (Esferas: +5.50 a -4.00, Cilindros: +/- 4.00, Adición: 1.00 a 3.50)",
+    "name": "Bif. Kriptock Invisible Organico Blue Light Cut (Bifocal Digital Invisible) (Esferas: +5.50 a -4.00, Cilindros: +/- 4.00, Adición: 1.00 a 3.50)",
+    "category": "Bifocal",
+    "type": "Laboratorio",
+    "price": 69800,
+    "priceStr": "$69,800"
+  },
+  {
+    "id": 28,
+    "rawName": "[Bifocal] Bif. Kriptock Invisible Organico Blue Light Cut c/ Antirreflex (Bifocal Digital Invisible) (Esferas: +5.50 a -4.00, Cilindros: +/- 4.00, Adición: 1.00 a 3.50)",
+    "name": "Bif. Kriptock Invisible Organico Blue Light Cut c/ Antirreflex (Bifocal Digital Invisible) (Esferas: +5.50 a -4.00, Cilindros: +/- 4.00, Adición: 1.00 a 3.50)",
+    "category": "Bifocal",
+    "type": "Laboratorio",
+    "price": 89900,
+    "priceStr": "$89,900"
+  },
+  {
+    "id": 29,
+    "rawName": "[Bifocal] Bif. Kriptock Invisible Organico Blue Light Fotocromático Gris (Bifocal Digital Invisible) (Esferas: +5.50 a -4.00, Cilindros: +/- 4.00, Adición: 1.00 a 3.50)",
+    "name": "Bif. Kriptock Invisible Organico Blue Light Fotocromático Gris (Bifocal Digital Invisible) (Esferas: +5.50 a -4.00, Cilindros: +/- 4.00, Adición: 1.00 a 3.50)",
+    "category": "Bifocal",
+    "type": "Laboratorio",
+    "price": 93800,
+    "priceStr": "$93,800"
+  },
+  {
+    "id": 30,
+    "rawName": "[Multifocal Digital] Orgánico BLUE LIGHT (Índice: 1.56) - Diseño One (Básico)",
+    "name": "Orgánico BLUE LIGHT (Índice: 1.56) - Diseño One (Básico)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 76128,
+    "priceStr": "$76,128"
+  },
+  {
+    "id": 31,
+    "rawName": "[Multifocal Digital] Orgánico BLUE LIGHT (Índice: 1.56) - Diseño New (Intermedio)",
+    "name": "Orgánico BLUE LIGHT (Índice: 1.56) - Diseño New (Intermedio)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 118791,
+    "priceStr": "$118,791"
+  },
+  {
+    "id": 32,
+    "rawName": "[Multifocal Digital] Orgánico BLUE LIGHT (Índice: 1.56) - Diseño Free (Avanzado)",
+    "name": "Orgánico BLUE LIGHT (Índice: 1.56) - Diseño Free (Avanzado)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 166308,
+    "priceStr": "$166,308"
+  },
+  {
+    "id": 33,
+    "rawName": "[Multifocal Digital] Orgánico BLUE LIGHT (Índice: 1.56) - Diseño Pro (Premium)",
+    "name": "Orgánico BLUE LIGHT (Índice: 1.56) - Diseño Pro (Premium)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 183382,
+    "priceStr": "$183,382"
+  },
+  {
+    "id": 34,
+    "rawName": "[Multifocal Digital] Orgánico BLUE LIGHT c/ Antirreflex Block (Índice: 1.56) - Diseño One (Básico)",
+    "name": "Orgánico BLUE LIGHT c/ Antirreflex Block (Índice: 1.56) - Diseño One (Básico)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 97991,
+    "priceStr": "$97,991"
+  },
+  {
+    "id": 35,
+    "rawName": "[Multifocal Digital] Orgánico BLUE LIGHT c/ Antirreflex Block (Índice: 1.56) - Diseño New (Intermedio)",
+    "name": "Orgánico BLUE LIGHT c/ Antirreflex Block (Índice: 1.56) - Diseño New (Intermedio)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 140012,
+    "priceStr": "$140,012"
+  },
+  {
+    "id": 36,
+    "rawName": "[Multifocal Digital] Orgánico BLUE LIGHT c/ Antirreflex Block (Índice: 1.56) - Diseño Free (Avanzado)",
+    "name": "Orgánico BLUE LIGHT c/ Antirreflex Block (Índice: 1.56) - Diseño Free (Avanzado)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 187528,
+    "priceStr": "$187,528"
+  },
+  {
+    "id": 37,
+    "rawName": "[Multifocal Digital] Orgánico BLUE LIGHT c/ Antirreflex Block (Índice: 1.56) - Diseño Pro (Premium)",
+    "name": "Orgánico BLUE LIGHT c/ Antirreflex Block (Índice: 1.56) - Diseño Pro (Premium)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 204602,
+    "priceStr": "$204,602"
+  },
+  {
+    "id": 38,
+    "rawName": "[Multifocal Digital] Org Fotocromático Grey (Índice: 1.56) - Diseño One (Básico)",
+    "name": "Org Fotocromático Grey (Índice: 1.56) - Diseño One (Básico)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 90911,
+    "priceStr": "$90,911"
+  },
+  {
+    "id": 39,
+    "rawName": "[Multifocal Digital] Org Fotocromático Grey (Índice: 1.56) - Diseño New (Intermedio)",
+    "name": "Org Fotocromático Grey (Índice: 1.56) - Diseño New (Intermedio)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 140668,
+    "priceStr": "$140,668"
+  },
+  {
+    "id": 40,
+    "rawName": "[Multifocal Digital] Org Fotocromático Grey (Índice: 1.56) - Diseño Free (Avanzado)",
+    "name": "Org Fotocromático Grey (Índice: 1.56) - Diseño Free (Avanzado)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 196934,
+    "priceStr": "$196,934"
+  },
+  {
+    "id": 41,
+    "rawName": "[Multifocal Digital] Org Fotocromático Grey (Índice: 1.56) - Diseño Pro (Premium)",
+    "name": "Org Fotocromático Grey (Índice: 1.56) - Diseño Pro (Premium)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 217152,
+    "priceStr": "$217,152"
+  },
+  {
+    "id": 42,
+    "rawName": "[Multifocal Digital] Org Fotocromático Grey c/ Antirreflex Block (Índice: 1.56) - Diseño One (Básico)",
+    "name": "Org Fotocromático Grey c/ Antirreflex Block (Índice: 1.56) - Diseño One (Básico)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 112132,
+    "priceStr": "$112,132"
+  },
+  {
+    "id": 43,
+    "rawName": "[Multifocal Digital] Org Fotocromático Grey c/ Antirreflex Block (Índice: 1.56) - Diseño New (Intermedio)",
+    "name": "Org Fotocromático Grey c/ Antirreflex Block (Índice: 1.56) - Diseño New (Intermedio)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 161888,
+    "priceStr": "$161,888"
+  },
+  {
+    "id": 44,
+    "rawName": "[Multifocal Digital] Org Fotocromático Grey c/ Antirreflex Block (Índice: 1.56) - Diseño Free (Avanzado)",
+    "name": "Org Fotocromático Grey c/ Antirreflex Block (Índice: 1.56) - Diseño Free (Avanzado)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 218154,
+    "priceStr": "$218,154"
+  },
+  {
+    "id": 45,
+    "rawName": "[Multifocal Digital] Org Fotocromático Grey c/ Antirreflex Block (Índice: 1.56) - Diseño Pro (Premium)",
+    "name": "Org Fotocromático Grey c/ Antirreflex Block (Índice: 1.56) - Diseño Pro (Premium)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 238372,
+    "priceStr": "$238,372"
+  },
+  {
+    "id": 46,
+    "rawName": "[Multifocal Digital] Org Fotocromático BLUELIGHT Grey (Índice: 1.56) - Diseño One (Básico)",
+    "name": "Org Fotocromático BLUELIGHT Grey (Índice: 1.56) - Diseño One (Básico)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 111054,
+    "priceStr": "$111,054"
+  },
+  {
+    "id": 47,
+    "rawName": "[Multifocal Digital] Org Fotocromático BLUELIGHT Grey (Índice: 1.56) - Diseño New (Intermedio)",
+    "name": "Org Fotocromático BLUELIGHT Grey (Índice: 1.56) - Diseño New (Intermedio)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 171827,
+    "priceStr": "$171,827"
+  },
+  {
+    "id": 48,
+    "rawName": "[Multifocal Digital] Org Fotocromático BLUELIGHT Grey (Índice: 1.56) - Diseño Free (Avanzado)",
+    "name": "Org Fotocromático BLUELIGHT Grey (Índice: 1.56) - Diseño Free (Avanzado)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 223367,
+    "priceStr": "$223,367"
+  },
+  {
+    "id": 49,
+    "rawName": "[Multifocal Digital] Org Fotocromático BLUELIGHT Grey (Índice: 1.56) - Diseño Pro (Premium)",
+    "name": "Org Fotocromático BLUELIGHT Grey (Índice: 1.56) - Diseño Pro (Premium)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 246316,
+    "priceStr": "$246,316"
+  },
+  {
+    "id": 50,
+    "rawName": "[Multifocal Digital] Org Fotocromático BLUELIGHT (Índice: 1.56) - Diseño One (Básico)",
+    "name": "Org Fotocromático BLUELIGHT (Índice: 1.56) - Diseño One (Básico)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 132274,
+    "priceStr": "$132,274"
+  },
+  {
+    "id": 51,
+    "rawName": "[Multifocal Digital] Org Fotocromático BLUELIGHT (Índice: 1.56) - Diseño New (Intermedio)",
+    "name": "Org Fotocromático BLUELIGHT (Índice: 1.56) - Diseño New (Intermedio)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 193047,
+    "priceStr": "$193,047"
+  },
+  {
+    "id": 52,
+    "rawName": "[Multifocal Digital] Org Fotocromático BLUELIGHT (Índice: 1.56) - Diseño Free (Avanzado)",
+    "name": "Org Fotocromático BLUELIGHT (Índice: 1.56) - Diseño Free (Avanzado)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 244587,
+    "priceStr": "$244,587"
+  },
+  {
+    "id": 53,
+    "rawName": "[Multifocal Digital] Org Fotocromático BLUELIGHT (Índice: 1.56) - Diseño Pro (Premium)",
+    "name": "Org Fotocromático BLUELIGHT (Índice: 1.56) - Diseño Pro (Premium)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 267750,
+    "priceStr": "$267,750"
+  },
+  {
+    "id": 54,
+    "rawName": "[Multifocal Digital] Policarbonato BLUE LIGHT (Índice: 1.59) - Diseño One (Básico)",
+    "name": "Policarbonato BLUE LIGHT (Índice: 1.59) - Diseño One (Básico)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 101169,
+    "priceStr": "$101,169"
+  },
+  {
+    "id": 55,
+    "rawName": "[Multifocal Digital] Policarbonato BLUE LIGHT (Índice: 1.59) - Diseño New (Intermedio)",
+    "name": "Policarbonato BLUE LIGHT (Índice: 1.59) - Diseño New (Intermedio)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 156537,
+    "priceStr": "$156,537"
+  },
+  {
+    "id": 56,
+    "rawName": "[Multifocal Digital] Policarbonato BLUE LIGHT (Índice: 1.59) - Diseño Free (Avanzado)",
+    "name": "Policarbonato BLUE LIGHT (Índice: 1.59) - Diseño Free (Avanzado)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 219152,
+    "priceStr": "$219,152"
+  },
+  {
+    "id": 57,
+    "rawName": "[Multifocal Digital] Policarbonato BLUE LIGHT (Índice: 1.59) - Diseño Pro (Premium)",
+    "name": "Policarbonato BLUE LIGHT (Índice: 1.59) - Diseño Pro (Premium)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 241653,
+    "priceStr": "$241,653"
+  },
+  {
+    "id": 58,
+    "rawName": "[Multifocal Digital] Orgánico Super BlueLight (Índice: 1.60) - Diseño One (Básico)",
+    "name": "Orgánico Super BlueLight (Índice: 1.60) - Diseño One (Básico)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 95306,
+    "priceStr": "$95,306"
+  },
+  {
+    "id": 59,
+    "rawName": "[Multifocal Digital] Orgánico Super BlueLight (Índice: 1.60) - Diseño New (Intermedio)",
+    "name": "Orgánico Super BlueLight (Índice: 1.60) - Diseño New (Intermedio)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 120787,
+    "priceStr": "$120,787"
+  },
+  {
+    "id": 60,
+    "rawName": "[Multifocal Digital] Orgánico Super BlueLight (Índice: 1.60) - Diseño Free (Avanzado)",
+    "name": "Orgánico Super BlueLight (Índice: 1.60) - Diseño Free (Avanzado)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 169102,
+    "priceStr": "$169,102"
+  },
+  {
+    "id": 61,
+    "rawName": "[Multifocal Digital] Orgánico Super BlueLight (Índice: 1.60) - Diseño Pro (Premium)",
+    "name": "Orgánico Super BlueLight (Índice: 1.60) - Diseño Pro (Premium)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 186467,
+    "priceStr": "$186,467"
+  },
+  {
+    "id": 62,
+    "rawName": "[Multifocal Digital] Orgánico Super BlueLight c/ Antirreflex Block (Índice: 1.60) - Diseño One (Básico)",
+    "name": "Orgánico Super BlueLight c/ Antirreflex Block (Índice: 1.60) - Diseño One (Básico)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 115563,
+    "priceStr": "$115,563"
+  },
+  {
+    "id": 63,
+    "rawName": "[Multifocal Digital] Orgánico Super BlueLight c/ Antirreflex Block (Índice: 1.60) - Diseño New (Intermedio)",
+    "name": "Orgánico Super BlueLight c/ Antirreflex Block (Índice: 1.60) - Diseño New (Intermedio)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 141044,
+    "priceStr": "$141,044"
+  },
+  {
+    "id": 64,
+    "rawName": "[Multifocal Digital] Orgánico Super BlueLight c/ Antirreflex Block (Índice: 1.60) - Diseño Free (Avanzado)",
+    "name": "Orgánico Super BlueLight c/ Antirreflex Block (Índice: 1.60) - Diseño Free (Avanzado)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 189359,
+    "priceStr": "$189,359"
+  },
+  {
+    "id": 65,
+    "rawName": "[Multifocal Digital] Orgánico Super BlueLight c/ Antirreflex Block (Índice: 1.60) - Diseño Pro (Premium)",
+    "name": "Orgánico Super BlueLight c/ Antirreflex Block (Índice: 1.60) - Diseño Pro (Premium)",
+    "category": "Multifocal Digital",
+    "type": "Laboratorio",
+    "price": 206724,
+    "priceStr": "$206,724"
+  },
+  {
+    "id": 66,
+    "rawName": "[Ocupacional Digital] Orgánico Blue Light (Índice: 1.56)",
+    "name": "Orgánico Blue Light (Índice: 1.56)",
+    "category": "Ocupacional Digital",
+    "type": "Laboratorio",
+    "price": 64321,
+    "priceStr": "$64,321"
+  },
+  {
+    "id": 67,
+    "rawName": "[Ocupacional Digital] Orgánico Blue Light c/ Antirreflex Block (Índice: 1.56)",
+    "name": "Orgánico Blue Light c/ Antirreflex Block (Índice: 1.56)",
+    "category": "Ocupacional Digital",
+    "type": "Laboratorio",
+    "price": 85541,
+    "priceStr": "$85,541"
+  },
+  {
+    "id": 68,
+    "rawName": "[Ocupacional Digital] Orgánico Blanco Alto Índice (Índice: 1.60)",
+    "name": "Orgánico Blanco Alto Índice (Índice: 1.60)",
+    "category": "Ocupacional Digital",
+    "type": "Laboratorio",
+    "price": 75089,
+    "priceStr": "$75,089"
+  },
+  {
+    "id": 69,
+    "rawName": "[Ocupacional Digital] Orgánico Super Blue Light c/ Antirreflex Block (Índice: 1.60)",
+    "name": "Orgánico Super Blue Light c/ Antirreflex Block (Índice: 1.60)",
+    "category": "Ocupacional Digital",
+    "type": "Laboratorio",
+    "price": 91765,
+    "priceStr": "$91,765"
+  },
+  {
+    "id": 70,
+    "rawName": "[Tratamientos] Antireflejo SMART Ultra Layer",
+    "name": "Antireflejo SMART Ultra Layer",
+    "category": "Tratamientos",
+    "type": "Stock",
+    "price": 58690,
+    "priceStr": "$58,690"
+  },
+  {
+    "id": 71,
+    "rawName": "[Tratamientos] Antireflejo SMART Element",
+    "name": "Antireflejo SMART Element",
+    "category": "Tratamientos",
+    "type": "Stock",
+    "price": 42440,
+    "priceStr": "$42,440"
+  },
+  {
+    "id": 72,
+    "rawName": "[Tratamientos] Teñido Compacto",
+    "name": "Teñido Compacto",
+    "category": "Tratamientos",
+    "type": "Stock",
+    "price": 8984,
+    "priceStr": "$8,984"
+  },
+  {
+    "id": 73,
+    "rawName": "[Tratamientos] Teñido Degradé",
+    "name": "Teñido Degradé",
+    "category": "Tratamientos",
+    "type": "Stock",
+    "price": 10170,
+    "priceStr": "$10,170"
+  },
+  {
+    "id": 74,
+    "rawName": "[Calibrados y Trabajos] ORGANICO STOCK - Montura Completa (Biselado y Montaje)",
+    "name": "ORGANICO STOCK - Montura Completa (Biselado y Montaje)",
+    "category": "Calibrados y Trabajos",
+    "type": "Stock",
+    "price": 2857,
+    "priceStr": "$2,857"
+  },
+  {
+    "id": 75,
+    "rawName": "[Calibrados y Trabajos] ORGANICO STOCK - Ranurado / Semi al Aire (Biselado y Montaje)",
+    "name": "ORGANICO STOCK - Ranurado / Semi al Aire (Biselado y Montaje)",
+    "category": "Calibrados y Trabajos",
+    "type": "Stock",
+    "price": 4473,
+    "priceStr": "$4,473"
+  },
+  {
+    "id": 76,
+    "rawName": "[Calibrados y Trabajos] ORGANICO STOCK - Perforado / Al Aire (Biselado y Montaje)",
+    "name": "ORGANICO STOCK - Perforado / Al Aire (Biselado y Montaje)",
+    "category": "Calibrados y Trabajos",
+    "type": "Stock",
+    "price": 9608,
+    "priceStr": "$9,608"
+  },
+  {
+    "id": 77,
+    "rawName": "[Calibrados y Trabajos] ORGANICO LABORATORIO - Montura Completa (Biselado y Montaje)",
+    "name": "ORGANICO LABORATORIO - Montura Completa (Biselado y Montaje)",
+    "category": "Calibrados y Trabajos",
+    "type": "Stock",
+    "price": 4788,
+    "priceStr": "$4,788"
+  },
+  {
+    "id": 78,
+    "rawName": "[Calibrados y Trabajos] ORGANICO LABORATORIO - Ranurado / Semi al Aire (Biselado y Montaje)",
+    "name": "ORGANICO LABORATORIO - Ranurado / Semi al Aire (Biselado y Montaje)",
+    "category": "Calibrados y Trabajos",
+    "type": "Stock",
+    "price": 6226,
+    "priceStr": "$6,226"
+  },
+  {
+    "id": 79,
+    "rawName": "[Calibrados y Trabajos] ORGANICO LABORATORIO - Perforado / Al Aire (Biselado y Montaje)",
+    "name": "ORGANICO LABORATORIO - Perforado / Al Aire (Biselado y Montaje)",
+    "category": "Calibrados y Trabajos",
+    "type": "Stock",
+    "price": 14935,
+    "priceStr": "$14,935"
+  },
+  {
+    "id": 80,
+    "rawName": "[Calibrados y Trabajos] PASE DE CRISTALES (Precio Único) - Montura Completa (Biselado y Montaje)",
+    "name": "PASE DE CRISTALES (Precio Único) - Montura Completa (Biselado y Montaje)",
+    "category": "Calibrados y Trabajos",
+    "type": "Stock",
+    "price": 6863,
+    "priceStr": "$6,863"
+  },
+  {
+    "id": 81,
+    "rawName": "[Calibrados y Trabajos] PASE DE CRISTALES (Precio Único) - Ranurado / Semi al Aire (Biselado y Montaje)",
+    "name": "PASE DE CRISTALES (Precio Único) - Ranurado / Semi al Aire (Biselado y Montaje)",
+    "category": "Calibrados y Trabajos",
+    "type": "Stock",
+    "price": null,
+    "priceStr": "-"
+  },
+  {
+    "id": 82,
+    "rawName": "[Calibrados y Trabajos] PASE DE CRISTALES (Precio Único) - Perforado / Al Aire (Biselado y Montaje)",
+    "name": "PASE DE CRISTALES (Precio Único) - Perforado / Al Aire (Biselado y Montaje)",
+    "category": "Calibrados y Trabajos",
+    "type": "Stock",
+    "price": null,
+    "priceStr": "-"
+  }
+]
