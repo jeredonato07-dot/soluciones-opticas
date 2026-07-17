@@ -806,8 +806,9 @@ strong {
 }
 
 .table-xs-row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 80px 100px;
+  gap: 12px;
   padding: 8px 12px;
   background-color: var(--bg-dark-soft);
   border-radius: var(--radius-sm);

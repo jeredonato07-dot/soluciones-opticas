@@ -56,6 +56,9 @@ export default function Dashboard({ campaign, jobs, localities }) {
     'Laboratorio': { count: 0, billing: 0 }
   };
 
+  // Consumed lenses detailed breakdown (by product name)
+  const detailedLensStats = {};
+
   jobs.forEach(job => {
     // Calibrado (always full price)
     const cType = job.calibradoTipo || 'Aro Completo';
@@ -75,13 +78,28 @@ export default function Dashboard({ campaign, jobs, localities }) {
         lensStats[type].count += 0.5; // Half a pair
         lensStats[type].billing += (job.cristalOD.price || 0) / 2;
       }
+
+      const prodName = job.cristalOD.name;
+      if (!detailedLensStats[prodName]) {
+        detailedLensStats[prodName] = { count: 0, billing: 0 };
+      }
+      detailedLensStats[prodName].count += 0.5;
+      detailedLensStats[prodName].billing += (job.cristalOD.price || 0) / 2;
     }
+    
     if (job.cristalOI) {
       const type = job.cristalOI.type || 'Stock';
       if (lensStats[type]) {
         lensStats[type].count += 0.5; // Half a pair
         lensStats[type].billing += (job.cristalOI.price || 0) / 2;
       }
+
+      const prodName = job.cristalOI.name;
+      if (!detailedLensStats[prodName]) {
+        detailedLensStats[prodName] = { count: 0, billing: 0 };
+      }
+      detailedLensStats[prodName].count += 0.5;
+      detailedLensStats[prodName].billing += (job.cristalOI.price || 0) / 2;
     }
   });
 
@@ -212,22 +230,38 @@ export default function Dashboard({ campaign, jobs, localities }) {
                         />
                         <div 
                           className="progress-segment bg-warning" 
-                          style={{ width: `${((loc.pedido + loc.sinPedir) / loc.total) * 100}%` }}
-                          title={`Pendientes: ${loc.pedido + loc.sinPedir}`}
+                          style={{ width: `${(loc.pedido / loc.total) * 100}%` }}
+                          title={`Pedido Lab: ${loc.pedido}`}
+                        />
+                        <div 
+                          className="progress-segment bg-danger" 
+                          style={{ width: `${(loc.sinPedir / loc.total) * 100}%` }}
+                          title={`Sin Pedir (❌ NO Encargado): ${loc.sinPedir}`}
                         />
                       </div>
                     </div>
                     
-                    <div className="locality-details-row">
-                      <span className="badge-dot text-warning font-xs">
-                        <span className="dot bg-warning"></span> {loc.pedido + loc.sinPedir} Pend.
-                      </span>
-                      <span className="badge-dot text-info font-xs">
-                        <span className="dot bg-info"></span> {loc.listo} Listos
-                      </span>
-                      <span className="badge-dot text-success font-xs">
-                        <span className="dot bg-success"></span> {loc.enviado} Env.
-                      </span>
+                    <div className="flex-align-center gap-3 mt-1 flex-wrap">
+                      {loc.sinPedir > 0 && (
+                        <span className="badge-dot text-danger font-xs">
+                          <span className="dot bg-danger"></span> {loc.sinPedir} Sin Pedir
+                        </span>
+                      )}
+                      {loc.pedido > 0 && (
+                        <span className="badge-dot text-warning font-xs">
+                          <span className="dot bg-warning"></span> {loc.pedido} Pedido Lab
+                        </span>
+                      )}
+                      {loc.listo > 0 && (
+                        <span className="badge-dot text-info font-xs">
+                          <span className="dot bg-info"></span> {loc.listo} Listo
+                        </span>
+                      )}
+                      {loc.enviado > 0 && (
+                        <span className="badge-dot text-success font-xs">
+                          <span className="dot bg-success"></span> {loc.enviado} Enviado
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))
@@ -240,7 +274,7 @@ export default function Dashboard({ campaign, jobs, localities }) {
           <div>
             <h3 className="m-0 mb-3 flex-align-center gap-2">
               <Eye size={20} className="text-primary" />
-              Resumen de Cristales
+              Resumen de Cristales (General)
             </h3>
             <div className="table-xs">
               <div className="table-xs-row header">
@@ -260,6 +294,35 @@ export default function Dashboard({ campaign, jobs, localities }) {
               </div>
             </div>
             <span className="text-muted font-xs mt-2 block">* Cantidad expresada en pares equivalentes (1 cristal = 0.5 pares).</span>
+          </div>
+
+          <div className="divider"></div>
+
+          <div>
+            <h3 className="m-0 mb-3 flex-align-center gap-2">
+              <Layers size={20} className="text-primary" />
+              Consumo de Cristales Detallado
+            </h3>
+            <div className="table-xs">
+              <div className="table-xs-row header">
+                <div>Producto</div>
+                <div className="text-right">Pares</div>
+                <div className="text-right">Total Est.</div>
+              </div>
+              {Object.keys(detailedLensStats).length === 0 ? (
+                <div className="text-secondary small text-center py-2">No hay cristales consumidos.</div>
+              ) : (
+                Object.entries(detailedLensStats)
+                  .sort((a, b) => b[1].count - a[1].count)
+                  .map(([name, stats]) => (
+                    <div key={name} className="table-xs-row">
+                      <div className="font-semibold">{name}</div>
+                      <div className="text-right font-medium">{stats.count.toFixed(1)}</div>
+                      <div className="text-right font-medium">{formatMoney(stats.billing)}</div>
+                    </div>
+                  ))
+              )}
+            </div>
           </div>
 
           <div className="divider"></div>
