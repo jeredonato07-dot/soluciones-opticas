@@ -72,6 +72,17 @@ const QUICK_LENSES_CONFIG = [
   }
 ];
 
+const getShortName = (item) => {
+  const baseName = item.name.split(' (')[0];
+  const typeMatch = item.name.match(/Tipo:\s*([^,\)]+)/);
+  if (typeMatch) {
+    const typeStr = typeMatch[1].trim();
+    const shortType = typeStr === 'Rango Extendido' ? 'Rango Ext' : typeStr;
+    return `${baseName} ${shortType}`;
+  }
+  return baseName;
+};
+
 export default function JobForm({ campaign, localities, jobs = [], onJobSaved }) {
   const [localidadId, setLocalidadId] = useState(() => localStorage.getItem('optica_last_localidad_id') || '');
   const [isChangingLocality, setIsChangingLocality] = useState(false);
@@ -165,9 +176,11 @@ export default function JobForm({ campaign, localities, jobs = [], onJobSaved })
     const matchedProduct = priceList.find(configItem.match);
     if (!matchedProduct) return;
 
+    const displayName = configItem.badge ? `${configItem.label} ${configItem.badge}` : configItem.label;
+
     const formattedProduct = {
       id: matchedProduct.id,
-      name: configItem.label,
+      name: displayName,
       fullName: matchedProduct.name,
       price: matchedProduct.price,
       type: matchedProduct.type
@@ -175,15 +188,15 @@ export default function JobForm({ campaign, localities, jobs = [], onJobSaved })
 
     if (quickAccessTarget === 'both') {
       setSelectedOD(formattedProduct);
-      setSearchOD(configItem.label);
+      setSearchOD(displayName);
       setSelectedOI(formattedProduct);
-      setSearchOI(configItem.label);
+      setSearchOI(displayName);
     } else if (quickAccessTarget === 'od') {
       setSelectedOD(formattedProduct);
-      setSearchOD(configItem.label);
+      setSearchOD(displayName);
     } else if (quickAccessTarget === 'oi') {
       setSelectedOI(formattedProduct);
-      setSearchOI(configItem.label);
+      setSearchOI(displayName);
     }
   };
 
@@ -519,14 +532,15 @@ export default function JobForm({ campaign, localities, jobs = [], onJobSaved })
                           key={item.id}
                           className={`dropdown-list-item ${selectedOD?.id === item.id ? 'selected' : ''}`}
                           onClick={() => {
+                            const shortName = getShortName(item);
                             setSelectedOD({
                               id: item.id,
-                              name: item.name.split(' (')[0],
+                              name: shortName,
                               fullName: item.name,
                               price: item.price,
                               type: item.type
                             });
-                            setSearchOD(item.name.split(' (')[0]);
+                            setSearchOD(shortName);
                             setShowODList(false);
                           }}
                         >
@@ -581,14 +595,15 @@ export default function JobForm({ campaign, localities, jobs = [], onJobSaved })
                           key={item.id}
                           className={`dropdown-list-item ${selectedOI?.id === item.id ? 'selected' : ''}`}
                           onClick={() => {
+                            const shortName = getShortName(item);
                             setSelectedOI({
                               id: item.id,
-                              name: item.name.split(' (')[0],
+                              name: shortName,
                               fullName: item.name,
                               price: item.price,
                               type: item.type
                             });
-                            setSearchOI(item.name.split(' (')[0]);
+                            setSearchOI(shortName);
                             setShowOIList(false);
                           }}
                         >

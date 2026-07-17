@@ -312,7 +312,7 @@ export default function JobList({ campaign, jobs, localities, onJobsUpdated }) {
                         </div>
                       </td>
                       <td>
-                        <div className="font-sm font-semibold">{job.calibradoTipo}</div>
+                        <div className="font-sm font-semibold">{job.calibradoTipo} ({job.calibradoProceso || 'Stock'})</div>
                         <div className="text-secondary font-xs">{formatMoney(job.calibradoPrecio)}</div>
                       </td>
                       <td>
