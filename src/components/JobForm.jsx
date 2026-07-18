@@ -112,6 +112,7 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [isManualSequence, setIsManualSequence] = useState(false);
 
   // DOM Refs for click-outside close
   const odRef = useRef();
@@ -121,6 +122,7 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
 
   // Synchronize form when editingJob changes
   useEffect(() => {
+    setIsManualSequence(false);
     if (editingJob) {
       setLocalidadId(editingJob.localidadId);
       setRefCode(editingJob.refCode);
@@ -332,6 +334,7 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
         localidadId,
         refCode,
         sequence,
+        isManualSequence,
         paciente: paciente.trim(),
         cristalOD: selectedOD ? { id: selectedOD.id, name: selectedOD.name, fullName: selectedOD.fullName || selectedOD.name, price: selectedOD.price, type: selectedOD.type } : null,
         cristalOI: selectedOI ? { id: selectedOI.id, name: selectedOI.name, fullName: selectedOI.fullName || selectedOI.name, price: selectedOI.price, type: selectedOI.type } : null,
@@ -362,6 +365,7 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
       setCalibradoTipo('Aro Completo');
       setNroPedidoLab('');
       setEsSinPedir(false);
+      setIsManualSequence(false);
       
       setRefreshTrigger(prev => prev + 1);
       
@@ -415,9 +419,30 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
           )}
         </h3>
         {refCode && (
-          <span className={`badge ${editingJob ? 'badge-warning-soft text-warning border-warning' : 'badge-primary'} font-md py-2 px-3`}>
-            {editingJob ? 'Guardando Cambios' : <>Código Ref: <strong>{refCode}</strong></>}
-          </span>
+          <div className="flex-align-center gap-2">
+            <span className={`badge ${editingJob ? 'badge-warning-soft text-warning border-warning' : 'badge-primary'} font-md py-2 px-3`}>
+              {editingJob ? 'Guardando Cambios' : <>Código Ref: <strong>{refCode}</strong></>}
+            </span>
+            {!editingJob && (
+              <div className="flex-align-center gap-1 bg-dark-soft p-1 rounded border border-color">
+                <span className="font-xs text-secondary pl-1">Modificar Nro:</span>
+                <input
+                  type="number"
+                  className="form-control text-center font-bold"
+                  style={{ width: '65px', padding: '2px 4px', height: '24px', fontSize: '0.85rem' }}
+                  min="1"
+                  value={sequence}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value) || 1;
+                    setSequence(val);
+                    setIsManualSequence(true);
+                    const locCode = refCode.replace(/[0-9]/g, '');
+                    setRefCode(`${val}${locCode}`);
+                  }}
+                />
+              </div>
+            )}
+          </div>
         )}
       </div>
 
@@ -711,23 +736,31 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
                 </div>
 
                 <div className="quick-lenses-grid">
-                  {QUICK_LENSES_CONFIG.map(configItem => (
-                    <button
-                      key={`${configItem.label}-${configItem.badge}`}
-                      type="button"
-                      className={`btn-quick-lens ${configItem.colorClass || ''}`}
-                      onClick={() => handleQuickAccessClick(configItem)}
-                      title={priceList.find(configItem.match)?.name || ''}
-                    >
-                      <span className="quick-lbl">{configItem.label}</span>
-                      <span className="quick-prc">
-                        {formatMoney((priceList.find(configItem.match)?.price || 0) / 2)}
-                      </span>
-                      {configItem.badge && (
-                        <span className="ql-badge">{configItem.badge}</span>
-                      )}
-                    </button>
-                  ))}
+                  {QUICK_LENSES_CONFIG.map(configItem => {
+                    const matchedProd = priceList.find(configItem.match);
+                    const isSelected = matchedProd && (
+                      (quickAccessTarget === 'both' && selectedOD?.id === matchedProd.id && selectedOI?.id === matchedProd.id) ||
+                      (quickAccessTarget === 'od' && selectedOD?.id === matchedProd.id) ||
+                      (quickAccessTarget === 'oi' && selectedOI?.id === matchedProd.id)
+                    );
+                    return (
+                      <button
+                        key={`${configItem.label}-${configItem.badge}`}
+                        type="button"
+                        className={`btn-quick-lens ${configItem.colorClass || ''} ${isSelected ? 'active' : ''}`}
+                        onClick={() => handleQuickAccessClick(configItem)}
+                        title={matchedProd?.name || ''}
+                      >
+                        <span className="quick-lbl">{configItem.label}</span>
+                        <span className="quick-prc">
+                          {formatMoney((matchedProd?.price || 0) / 2)}
+                        </span>
+                        {configItem.badge && (
+                          <span className="ql-badge">{configItem.badge}</span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

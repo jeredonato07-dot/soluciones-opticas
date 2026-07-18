@@ -547,8 +547,9 @@ strong {
 }
 
 .btn-radio.active {
-  background-color: rgba(255, 255, 255, 0.07);
-  color: #ffffff;
+  background-color: var(--color-primary) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.4), inset 0 0 4px rgba(59, 130, 246, 0.2) !important;
 }
 
 .btn-radio.disabled {
@@ -1323,6 +1324,36 @@ strong {
 .btn-quick-lens.ql-purple .ql-badge {
   background-color: rgba(168, 85, 247, 0.15);
   color: #e9d5ff;
+}
+
+/* Selected/Active states for themed quick access buttons */
+.btn-quick-lens.active {
+  transform: translateY(-2px);
+  border-width: 2px !important;
+}
+
+.btn-quick-lens.ql-blue.active {
+  background-color: rgba(59, 130, 246, 0.25) !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 14px rgba(59, 130, 246, 0.45), inset 0 0 6px rgba(59, 130, 246, 0.2) !important;
+}
+
+.btn-quick-lens.ql-teal.active {
+  background-color: rgba(20, 184, 166, 0.22) !important;
+  border-color: #14b8a6 !important;
+  box-shadow: 0 0 14px rgba(20, 184, 166, 0.45), inset 0 0 6px rgba(20, 184, 166, 0.2) !important;
+}
+
+.btn-quick-lens.ql-amber.active {
+  background-color: rgba(245, 158, 11, 0.22) !important;
+  border-color: #f59e0b !important;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.45), inset 0 0 6px rgba(245, 158, 11, 0.2) !important;
+}
+
+.btn-quick-lens.ql-purple.active {
+  background-color: rgba(168, 85, 247, 0.22) !important;
+  border-color: #a855f7 !important;
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.45), inset 0 0 6px rgba(168, 85, 247, 0.2) !important;
 }
 
 

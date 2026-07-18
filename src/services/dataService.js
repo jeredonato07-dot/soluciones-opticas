@@ -341,21 +341,43 @@ export const saveTrabajo = async (trabajo) => {
       try {
         const savedId = await runTransaction(db, async (transaction) => {
           const seqDoc = await transaction.get(seqRef);
-          let seq = 1;
-          if (seqDoc.exists()) {
-            seq = seqDoc.data().sequence + 1;
+          
+          let seq = trabajo.sequence;
+          const currentDbSeq = seqDoc.exists() ? seqDoc.data().sequence : 0;
+          
+          // Si no es secuencia manual, auto-incrementamos basándonos en el servidor
+          if (!trabajo.isManualSequence) {
+            if (seqDoc.exists()) {
+              seq = currentDbSeq + 1;
+            } else {
+              const maxFromJobs = await getMaxSequenceFromDb(db, trabajo.campanaId, trabajo.localidadId);
+              seq = maxFromJobs + 1;
+            }
           } else {
-            const maxFromJobs = await getMaxSequenceFromDb(db, trabajo.campanaId, trabajo.localidadId);
-            seq = maxFromJobs + 1;
+            // Si es manual, validamos que no esté duplicado en la base de datos
+            const q = query(
+              collection(db, 'trabajos'),
+              where('campanaId', '==', trabajo.campanaId),
+              where('localidadId', '==', trabajo.localidadId),
+              where('sequence', '==', seq)
+            );
+            const existingJobsSnap = await getDocs(q);
+            if (!existingJobsSnap.empty) {
+              throw new Error(`El código de referencia con número ${seq} ya existe en esta localidad.`);
+            }
           }
           
-          // Actualizar el contador atómico
-          transaction.set(seqRef, { sequence: seq });
+          // Actualizar el contador en la BD sólo si la nueva secuencia es mayor que la actual
+          const finalCounterValue = Math.max(currentDbSeq, seq);
+          transaction.set(seqRef, { sequence: finalCounterValue });
           
           // Asignar la secuencia final locked-in
           const locCode = trabajo.refCode.replace(/[0-9]/g, '');
           trabajo.sequence = seq;
           trabajo.refCode = `${seq}${locCode}`;
+          
+          // Eliminar flag temporal antes de guardar
+          delete trabajo.isManualSequence;
           
           // Guardar el documento del trabajo dentro de la misma transacción
           const jobRef = doc(collection(db, 'trabajos'));
@@ -366,10 +388,8 @@ export const saveTrabajo = async (trabajo) => {
         });
         return savedId;
       } catch (err) {
-        console.error("Error en la transacción, intentando guardado directo:", err);
-        // Fallback de seguridad en caso de error
-        const ref = await addDoc(collection(db, 'trabajos'), trabajo);
-        return ref.id;
+        console.error("Error en la transacción:", err);
+        throw err;
       }
     }
   }
@@ -382,18 +402,27 @@ export const saveTrabajo = async (trabajo) => {
       list[idx] = trabajo;
     }
   } else {
-    // Recalcular secuencia máxima al momento exacto de guardar para evitar desalineación
-    const filtered = list.filter(j => j.campanaId === trabajo.campanaId && j.localidadId === trabajo.localidadId);
-    let maxSeq = 0;
-    filtered.forEach(j => {
-      const seq = j.sequence || 0;
-      if (seq > maxSeq) maxSeq = seq;
-    });
-    const nextSeq = maxSeq + 1;
-    const locCode = trabajo.refCode.replace(/[0-9]/g, '');
+    let seq = trabajo.sequence;
+    if (!trabajo.isManualSequence) {
+      const filtered = list.filter(j => j.campanaId === trabajo.campanaId && j.localidadId === trabajo.localidadId);
+      let maxSeq = 0;
+      filtered.forEach(j => {
+        const seq = j.sequence || 0;
+        if (seq > maxSeq) maxSeq = seq;
+      });
+      seq = maxSeq + 1;
+    } else {
+      const duplicate = list.some(j => j.campanaId === trabajo.campanaId && j.localidadId === trabajo.localidadId && j.sequence === seq);
+      if (duplicate) {
+        throw new Error(`El código de referencia con número ${seq} ya existe en esta localidad.`);
+      }
+    }
     
-    trabajo.sequence = nextSeq;
-    trabajo.refCode = `${nextSeq}${locCode}`;
+    const locCode = trabajo.refCode.replace(/[0-9]/g, '');
+    delete trabajo.isManualSequence;
+    
+    trabajo.sequence = seq;
+    trabajo.refCode = `${seq}${locCode}`;
     trabajo.id = 'job_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
     list.push(trabajo);
   }
