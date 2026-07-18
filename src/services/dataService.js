@@ -60,7 +60,14 @@ const notifyCampaignListeners = () => {
 const notifyJobListeners = (campanaId) => {
   const allJobs = getLocalData(KEYS.JOBS);
   const filtered = allJobs.filter(j => j.campanaId === campanaId);
-  filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  filtered.sort((a, b) => {
+    const codeA = (a.refCode || '').replace(/[0-9]/g, '');
+    const codeB = (b.refCode || '').replace(/[0-9]/g, '');
+    if (codeA !== codeB) {
+      return codeA.localeCompare(codeB);
+    }
+    return (a.sequence || 0) - (b.sequence || 0);
+  });
   if (listeners.jobs[campanaId]) {
     listeners.jobs[campanaId].forEach(cb => cb(filtered));
   }
@@ -239,8 +246,15 @@ export const subscribeTrabajos = (campanaId, onData) => {
       snapshot.forEach(doc => {
         list.push({ id: doc.id, ...doc.data() });
       });
-      // Sort in JS by createdAt asc
-      list.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      // Sort: first alphabetically by locality code, then numerically by sequence number
+      list.sort((a, b) => {
+        const codeA = (a.refCode || '').replace(/[0-9]/g, '');
+        const codeB = (b.refCode || '').replace(/[0-9]/g, '');
+        if (codeA !== codeB) {
+          return codeA.localeCompare(codeB);
+        }
+        return (a.sequence || 0) - (b.sequence || 0);
+      });
       onData(list);
     }, (error) => {
       console.error("Firebase jobs subscription error:", error);
@@ -329,13 +343,57 @@ export const saveTrabajo = async (trabajo) => {
 
   if (db) {
     if (trabajo.id) {
-      // Modificar trabajo existente (no altera el secuenciador)
-      const ref = doc(db, 'trabajos', trabajo.id);
-      const { id, ...data } = trabajo;
-      await updateDoc(ref, data);
-      return trabajo.id;
+      // Modificar trabajo existente
+      const oldDocId = trabajo.id;
+      const newDocId = `${trabajo.campanaId}_${trabajo.localidadId}_${trabajo.sequence}`;
+      
+      try {
+        const result = await runTransaction(db, async (transaction) => {
+          // Si el ID de documento cambia (se modificó el número de secuencia manual durante la edición)
+          if (oldDocId !== newDocId) {
+            const newDocRef = doc(db, 'trabajos', newDocId);
+            const newDocSnap = await transaction.get(newDocRef);
+            
+            if (newDocSnap.exists()) {
+              throw new Error(`El código de referencia con número ${trabajo.sequence} ya existe en esta localidad.`);
+            }
+            
+            // Actualizar el secuenciador si la nueva secuencia es mayor que la registrada
+            const seqRef = doc(db, 'secuencias', `${trabajo.campanaId}_${trabajo.localidadId}`);
+            const seqDoc = await transaction.get(seqRef);
+            const currentDbSeq = seqDoc.exists() ? seqDoc.data().sequence : 0;
+            const finalCounterValue = Math.max(currentDbSeq, trabajo.sequence);
+            transaction.set(seqRef, { sequence: finalCounterValue });
+            
+            // Asignar el nuevo ID y código de referencia
+            const locCode = trabajo.refCode.replace(/[0-9]/g, '');
+            trabajo.refCode = `${trabajo.sequence}${locCode}`;
+            trabajo.id = newDocId;
+            
+            // Eliminar flag temporal si existe
+            delete trabajo.isManualSequence;
+            
+            // Crear el nuevo documento y eliminar el viejo
+            transaction.set(newDocRef, trabajo);
+            transaction.delete(doc(db, 'trabajos', oldDocId));
+            
+            return newDocId;
+          } else {
+            // Edición normal sin cambiar número de secuencia
+            const ref = doc(db, 'trabajos', trabajo.id);
+            const { id, ...data } = trabajo;
+            delete data.isManualSequence;
+            transaction.update(ref, data);
+            return trabajo.id;
+          }
+        });
+        return result;
+      } catch (err) {
+        console.error("Error en la transacción de edición:", err);
+        throw err;
+      }
     } else {
-      // Crear trabajo nuevo con Transacción Atómica para evitar duplicados concurrentes
+      // Crear trabajo nuevo con Transacción Atómica
       const seqRef = doc(db, 'secuencias', `${trabajo.campanaId}_${trabajo.localidadId}`);
       
       try {
@@ -353,18 +411,16 @@ export const saveTrabajo = async (trabajo) => {
               const maxFromJobs = await getMaxSequenceFromDb(db, trabajo.campanaId, trabajo.localidadId);
               seq = maxFromJobs + 1;
             }
-          } else {
-            // Si es manual, validamos que no esté duplicado en la base de datos
-            const q = query(
-              collection(db, 'trabajos'),
-              where('campanaId', '==', trabajo.campanaId),
-              where('localidadId', '==', trabajo.localidadId),
-              where('sequence', '==', seq)
-            );
-            const existingJobsSnap = await getDocs(q);
-            if (!existingJobsSnap.empty) {
-              throw new Error(`El código de referencia con número ${seq} ya existe en esta localidad.`);
-            }
+          }
+          
+          // Generamos el ID del documento usando la combinación única de Campaña + Localidad + Secuencia
+          const jobDocId = `${trabajo.campanaId}_${trabajo.localidadId}_${seq}`;
+          const jobRef = doc(db, 'trabajos', jobDocId);
+          const jobDoc = await transaction.get(jobRef);
+          
+          // Si el documento ya existe, bloqueamos inmediatamente
+          if (jobDoc.exists()) {
+            throw new Error(`El código de referencia con número ${seq} ya existe en esta localidad.`);
           }
           
           // Actualizar el contador en la BD sólo si la nueva secuencia es mayor que la actual
@@ -375,13 +431,11 @@ export const saveTrabajo = async (trabajo) => {
           const locCode = trabajo.refCode.replace(/[0-9]/g, '');
           trabajo.sequence = seq;
           trabajo.refCode = `${seq}${locCode}`;
+          trabajo.id = jobDocId;
           
           // Eliminar flag temporal antes de guardar
           delete trabajo.isManualSequence;
           
-          // Guardar el documento del trabajo dentro de la misma transacción
-          const jobRef = doc(collection(db, 'trabajos'));
-          trabajo.id = jobRef.id;
           transaction.set(jobRef, trabajo);
           
           return trabajo.id;
@@ -399,7 +453,26 @@ export const saveTrabajo = async (trabajo) => {
   if (trabajo.id) {
     const idx = list.findIndex(t => t.id === trabajo.id);
     if (idx !== -1) {
-      list[idx] = trabajo;
+      const oldDocId = trabajo.id;
+      const newDocId = `${trabajo.campanaId}_${trabajo.localidadId}_${trabajo.sequence}`;
+      
+      if (oldDocId !== newDocId) {
+        // Verificar duplicados
+        const duplicate = list.some(j => j.id === newDocId);
+        if (duplicate) {
+          throw new Error(`El código de referencia con número ${trabajo.sequence} ya existe en esta localidad.`);
+        }
+        
+        const locCode = trabajo.refCode.replace(/[0-9]/g, '');
+        trabajo.refCode = `${trabajo.sequence}${locCode}`;
+        trabajo.id = newDocId;
+        delete trabajo.isManualSequence;
+        
+        list[idx] = trabajo;
+      } else {
+        delete trabajo.isManualSequence;
+        list[idx] = trabajo;
+      }
     }
   } else {
     let seq = trabajo.sequence;
@@ -411,11 +484,13 @@ export const saveTrabajo = async (trabajo) => {
         if (seq > maxSeq) maxSeq = seq;
       });
       seq = maxSeq + 1;
-    } else {
-      const duplicate = list.some(j => j.campanaId === trabajo.campanaId && j.localidadId === trabajo.localidadId && j.sequence === seq);
-      if (duplicate) {
-        throw new Error(`El código de referencia con número ${seq} ya existe en esta localidad.`);
-      }
+    }
+    
+    // Generar ID único compuesto también para persistencia local
+    const jobDocId = `${trabajo.campanaId}_${trabajo.localidadId}_${seq}`;
+    const duplicate = list.some(j => j.id === jobDocId);
+    if (duplicate) {
+      throw new Error(`El código de referencia con número ${seq} ya existe en esta localidad.`);
     }
     
     const locCode = trabajo.refCode.replace(/[0-9]/g, '');
@@ -423,7 +498,7 @@ export const saveTrabajo = async (trabajo) => {
     
     trabajo.sequence = seq;
     trabajo.refCode = `${seq}${locCode}`;
-    trabajo.id = 'job_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+    trabajo.id = jobDocId;
     list.push(trabajo);
   }
   setLocalData(KEYS.JOBS, list);

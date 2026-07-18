@@ -162,6 +162,7 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
   // Load next code when campaign, localidad, or job changes (ONLY if not editing)
   useEffect(() => {
     if (editingJob) return; // Prevent overwriting sequence when editing
+    if (isManualSequence) return; // Prevent overwriting sequence when manual is active
     
     if (campaign && localidadId) {
       const selectedLoc = localities.find(l => l.id === localidadId);
@@ -175,7 +176,7 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
     } else {
       setRefCode('');
     }
-  }, [campaign, localidadId, localities, refreshTrigger, editingJob]);
+  }, [campaign, localidadId, localities, refreshTrigger, editingJob, isManualSequence]);
 
   // Click outside to close dropdowns
   useEffect(() => {
@@ -292,6 +293,7 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
 
   const handleSelectLocalidad = (id) => {
     setLocalidadId(id);
+    setIsManualSequence(false);
     if (id) {
       localStorage.setItem('optica_last_localidad_id', id);
     } else {
@@ -421,27 +423,25 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
         {refCode && (
           <div className="flex-align-center gap-2">
             <span className={`badge ${editingJob ? 'badge-warning-soft text-warning border-warning' : 'badge-primary'} font-md py-2 px-3`}>
-              {editingJob ? 'Guardando Cambios' : <>Código Ref: <strong>{refCode}</strong></>}
+              Código Ref: <strong>{refCode}</strong>
             </span>
-            {!editingJob && (
-              <div className="flex-align-center gap-1 bg-dark-soft p-1 rounded border border-color">
-                <span className="font-xs text-secondary pl-1">Modificar Nro:</span>
-                <input
-                  type="number"
-                  className="form-control text-center font-bold"
-                  style={{ width: '65px', padding: '2px 4px', height: '24px', fontSize: '0.85rem' }}
-                  min="1"
-                  value={sequence}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value) || 1;
-                    setSequence(val);
-                    setIsManualSequence(true);
-                    const locCode = refCode.replace(/[0-9]/g, '');
-                    setRefCode(`${val}${locCode}`);
-                  }}
-                />
-              </div>
-            )}
+            <div className="flex-align-center gap-1 bg-dark-soft p-1 rounded border border-color">
+              <span className="font-xs text-secondary pl-1">Modificar Nro:</span>
+              <input
+                type="number"
+                className="form-control text-center font-bold"
+                style={{ width: '65px', padding: '2px 4px', height: '24px', fontSize: '0.85rem' }}
+                min="1"
+                value={sequence}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value) || 1;
+                  setSequence(val);
+                  setIsManualSequence(true);
+                  const locCode = refCode.replace(/[0-9]/g, '');
+                  setRefCode(`${val}${locCode}`);
+                }}
+              />
+            </div>
           </div>
         )}
       </div>
