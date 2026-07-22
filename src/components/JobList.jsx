@@ -17,7 +17,7 @@ import { saveTrabajo, deleteTrabajo } from '../services/dataService';
 export default function JobList({ campaign, jobs, localities, onEditJob, onJobsUpdated }) {
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'logistics'
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedLocFilter, setSelectedLocFilter] = useState('');
+  const [selectedLocFilter, setSelectedLocFilter] = useState(() => localStorage.getItem('optica_last_localidad_id') || '');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('');
 
   // Toggle status cycling

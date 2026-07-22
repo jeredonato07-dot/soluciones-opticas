@@ -91,13 +91,35 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
   const [paciente, setPaciente] = useState('');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   
-  // Lens searches and selection
-  const [searchOD, setSearchOD] = useState('');
-  const [selectedOD, setSelectedOD] = useState(null);
+  // Default lens configuration for new jobs (Org Blue c/ Ar STOCK)
+  const defaultLensRef = useRef(null);
+  if (!defaultLensRef.current) {
+    const configItem = QUICK_LENSES_CONFIG[0];
+    const matchedProduct = priceList.find(configItem.match);
+    if (matchedProduct) {
+      const displayName = configItem.badge ? `${configItem.label} ${configItem.badge}` : configItem.label;
+      defaultLensRef.current = {
+        product: {
+          id: matchedProduct.id,
+          name: displayName,
+          fullName: matchedProduct.name,
+          price: matchedProduct.price,
+          type: matchedProduct.type
+        },
+        displayName
+      };
+    }
+  }
+
+  const defaultLens = defaultLensRef.current;
+
+  // Lens searches and selection (Defaulted to Org Blue c/ Ar STOCK)
+  const [searchOD, setSearchOD] = useState(defaultLens ? defaultLens.displayName : '');
+  const [selectedOD, setSelectedOD] = useState(defaultLens ? defaultLens.product : null);
   const [showODList, setShowODList] = useState(false);
 
-  const [searchOI, setSearchOI] = useState('');
-  const [selectedOI, setSelectedOI] = useState(null);
+  const [searchOI, setSearchOI] = useState(defaultLens ? defaultLens.displayName : '');
+  const [selectedOI, setSelectedOI] = useState(defaultLens ? defaultLens.product : null);
   const [showOIList, setShowOIList] = useState(false);
 
   // Quick Access targets: 'both', 'od', 'oi'
@@ -140,12 +162,19 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
       setNroPedidoLab(editingJob.nroPedidoLab || '');
       setEsSinPedir(editingJob.estado === 'Sin Pedir');
     } else {
-      // Clear form
+      // Clear form and set defaults
       setPaciente('');
-      setSelectedOD(null);
-      setSearchOD('');
-      setSelectedOI(null);
-      setSearchOI('');
+      if (defaultLens) {
+        setSelectedOD(defaultLens.product);
+        setSearchOD(defaultLens.displayName);
+        setSelectedOI(defaultLens.product);
+        setSearchOI(defaultLens.displayName);
+      } else {
+        setSelectedOD(null);
+        setSearchOD('');
+        setSelectedOI(null);
+        setSearchOI('');
+      }
       setCalibradoProceso('Stock');
       setCalibradoTipo('Aro Completo');
       setNroPedidoLab('');
@@ -367,12 +396,19 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
 
       await saveTrabajo(jobData);
       
-      // Reset form
+      // Reset form for next job
       setPaciente('');
-      setSelectedOD(null);
-      setSearchOD('');
-      setSelectedOI(null);
-      setSearchOI('');
+      if (defaultLens) {
+        setSelectedOD(defaultLens.product);
+        setSearchOD(defaultLens.displayName);
+        setSelectedOI(defaultLens.product);
+        setSearchOI(defaultLens.displayName);
+      } else {
+        setSelectedOD(null);
+        setSearchOD('');
+        setSelectedOI(null);
+        setSearchOI('');
+      }
       setCalibradoProceso('Stock');
       setCalibradoTipo('Aro Completo');
       setNroPedidoLab('');
@@ -395,10 +431,17 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
 
   const handleClear = () => {
     setPaciente('');
-    setSelectedOD(null);
-    setSearchOD('');
-    setSelectedOI(null);
-    setSearchOI('');
+    if (defaultLens) {
+      setSelectedOD(defaultLens.product);
+      setSearchOD(defaultLens.displayName);
+      setSelectedOI(defaultLens.product);
+      setSearchOI(defaultLens.displayName);
+    } else {
+      setSelectedOD(null);
+      setSearchOD('');
+      setSelectedOI(null);
+      setSearchOI('');
+    }
     setCalibradoProceso('Stock');
     setCalibradoTipo('Aro Completo');
     setNroPedidoLab('');
