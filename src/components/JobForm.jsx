@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Copy, Plus, RotateCcw, AlertTriangle, Search, Sparkles, Check, Edit } from 'lucide-react';
+import { Copy, Plus, RotateCcw, AlertTriangle, Search, Sparkles, Check, Edit, X } from 'lucide-react';
 import priceList from '../data/lista_de_precios.json';
 import { getNextRefCode, saveTrabajo } from '../services/dataService';
 
@@ -281,13 +281,23 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
       calPrice = 0;
     }
 
+    // Si sólo hay 1 cristal cargado (OD u OI), el calibrado se cobra a la mitad (1/2 calibrado)
+    const hasOD = !!selectedOD;
+    const hasOI = !!selectedOI;
+    const isSingleEye = (hasOD && !hasOI) || (!hasOD && hasOI);
+
+    if (isSingleEye && !isPaseDeCristales) {
+      calPrice = calPrice / 2;
+    }
+
     const total = priceOD + priceOI + calPrice;
     return {
       priceOD,
       priceOI,
       calPrice,
       calName,
-      total
+      total,
+      isSingleEye
     };
   };
 
@@ -594,15 +604,32 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
                     <Search size={16} className="search-icon" />
                     <input
                       type="text"
-                      className="form-control pl-5"
+                      className="form-control pl-5 pr-5"
                       placeholder="Escribe para buscar cristal OD..."
                       value={searchOD}
                       onChange={(e) => {
-                        setSearchOD(e.target.value);
+                        const val = e.target.value;
+                        setSearchOD(val);
+                        if (!val.trim() || (selectedOD && val !== selectedOD.name && val !== selectedOD.fullName)) {
+                          setSelectedOD(null);
+                        }
                         setShowODList(true);
                       }}
                       onFocus={() => setShowODList(true)}
                     />
+                    {searchOD && (
+                      <button
+                        type="button"
+                        className="btn-clear-input"
+                        onClick={() => {
+                          setSearchOD('');
+                          setSelectedOD(null);
+                        }}
+                        title="Borrar cristal OD"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
                   </div>
                   
                   {showODList && (
@@ -657,15 +684,32 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
                     <Search size={16} className="search-icon" />
                     <input
                       type="text"
-                      className="form-control pl-5"
+                      className="form-control pl-5 pr-5"
                       placeholder="Escribe para buscar cristal OI..."
                       value={searchOI}
                       onChange={(e) => {
-                        setSearchOI(e.target.value);
+                        const val = e.target.value;
+                        setSearchOI(val);
+                        if (!val.trim() || (selectedOI && val !== selectedOI.name && val !== selectedOI.fullName)) {
+                          setSelectedOI(null);
+                        }
                         setShowOIList(true);
                       }}
                       onFocus={() => setShowOIList(true)}
                     />
+                    {searchOI && (
+                      <button
+                        type="button"
+                        className="btn-clear-input"
+                        onClick={() => {
+                          setSearchOI('');
+                          setSelectedOI(null);
+                        }}
+                        title="Borrar cristal OI"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
                   </div>
                   
                   {showOIList && (
@@ -813,7 +857,7 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
               <div className="flex-align-center gap-3">
                 <span className="text-secondary font-sm font-semibold">Desglose rápido:</span>
                 <span className="font-mono font-xs text-muted">
-                  OD: {formatMoney(pricing.priceOD)} | OI: {formatMoney(pricing.priceOI)} | Calib: {formatMoney(pricing.calPrice)}
+                  OD: {formatMoney(pricing.priceOD)} | OI: {formatMoney(pricing.priceOI)} | Calib: {formatMoney(pricing.calPrice)} {pricing.isSingleEye ? '(1/2)' : ''}
                 </span>
               </div>
             </div>

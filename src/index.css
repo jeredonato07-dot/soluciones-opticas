@@ -606,6 +606,33 @@ strong {
   padding-left: 40px !important;
 }
 
+.pr-5 {
+  padding-right: 36px !important;
+}
+
+.btn-clear-input {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.15s ease;
+  z-index: 10;
+}
+
+.btn-clear-input:hover {
+  color: var(--color-danger);
+  background-color: rgba(239, 68, 68, 0.15);
+}
+
 .dropdown-list-container {
   position: absolute;
   top: calc(100% + 4px);
