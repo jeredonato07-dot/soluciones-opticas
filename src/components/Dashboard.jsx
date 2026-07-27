@@ -9,6 +9,23 @@ import {
   Layers,
   FileText
 } from 'lucide-react';
+import priceList from '../data/lista_de_precios.json';
+
+function getCalibrationUnitPrice(cType, cProcess) {
+  let processStr = 'ORGANICO STOCK';
+  if (cProcess === 'Laboratorio') {
+    processStr = 'ORGANICO LABORATORIO';
+  } else if (cProcess === 'Pase de Cristales') {
+    processStr = 'PASE DE CRISTALES';
+  }
+
+  let typeStr = 'Montura Completa';
+  if (cType === 'Ranurado') typeStr = 'Ranurado / Semi al Aire';
+  if (cType === 'Perforado') typeStr = 'Perforado / Al Aire';
+
+  const calProd = priceList.find(p => p.rawName && p.rawName.includes(processStr) && p.rawName.includes(typeStr));
+  return calProd ? (calProd.price || 0) : 0;
+}
 
 export default function Dashboard({ campaign, jobs, localities }) {
   if (!campaign) {
@@ -42,12 +59,12 @@ export default function Dashboard({ campaign, jobs, localities }) {
 
   // Calibration types breakdown (per pair/job price)
   const calibrationStats = {
-    'Aro Completo (Stock)': { count: 0, billing: 0 },
-    'Aro Completo (Laboratorio)': { count: 0, billing: 0 },
-    'Ranurado (Stock)': { count: 0, billing: 0 },
-    'Ranurado (Laboratorio)': { count: 0, billing: 0 },
-    'Perforado (Stock)': { count: 0, billing: 0 },
-    'Perforado (Laboratorio)': { count: 0, billing: 0 }
+    'Aro Completo (Stock)': { count: 0, billing: 0, unitPrice: getCalibrationUnitPrice('Aro Completo', 'Stock') },
+    'Aro Completo (Laboratorio)': { count: 0, billing: 0, unitPrice: getCalibrationUnitPrice('Aro Completo', 'Laboratorio') },
+    'Ranurado (Stock)': { count: 0, billing: 0, unitPrice: getCalibrationUnitPrice('Ranurado', 'Stock') },
+    'Ranurado (Laboratorio)': { count: 0, billing: 0, unitPrice: getCalibrationUnitPrice('Ranurado', 'Laboratorio') },
+    'Perforado (Stock)': { count: 0, billing: 0, unitPrice: getCalibrationUnitPrice('Perforado', 'Stock') },
+    'Perforado (Laboratorio)': { count: 0, billing: 0, unitPrice: getCalibrationUnitPrice('Perforado', 'Laboratorio') }
   };
   
   // Lens types breakdown (Stock vs Laboratorio, in pairs)
@@ -66,10 +83,13 @@ export default function Dashboard({ campaign, jobs, localities }) {
     const displayName = `${cType} (${cProcess})`;
     
     if (!calibrationStats[displayName]) {
-      calibrationStats[displayName] = { count: 0, billing: 0 };
+      calibrationStats[displayName] = { count: 0, billing: 0, unitPrice: getCalibrationUnitPrice(cType, cProcess) };
     }
     calibrationStats[displayName].count++;
     calibrationStats[displayName].billing += (job.calibradoPrecio || 0);
+    if (!calibrationStats[displayName].unitPrice && job.calibradoPrecio) {
+      calibrationStats[displayName].unitPrice = job.calibradoPrecio;
+    }
 
     // Cristales (OD + OI, priced at 50% per lens)
     if (job.cristalOD) {
@@ -81,10 +101,17 @@ export default function Dashboard({ campaign, jobs, localities }) {
 
       const prodName = job.cristalOD.name;
       if (!detailedLensStats[prodName]) {
-        detailedLensStats[prodName] = { count: 0, billing: 0 };
+        detailedLensStats[prodName] = { 
+          count: 0, 
+          billing: 0,
+          unitPrice: job.cristalOD.price || 0
+        };
       }
       detailedLensStats[prodName].count += 0.5;
       detailedLensStats[prodName].billing += (job.cristalOD.price || 0) / 2;
+      if (!detailedLensStats[prodName].unitPrice && job.cristalOD.price) {
+        detailedLensStats[prodName].unitPrice = job.cristalOD.price;
+      }
     }
     
     if (job.cristalOI) {
@@ -96,10 +123,17 @@ export default function Dashboard({ campaign, jobs, localities }) {
 
       const prodName = job.cristalOI.name;
       if (!detailedLensStats[prodName]) {
-        detailedLensStats[prodName] = { count: 0, billing: 0 };
+        detailedLensStats[prodName] = { 
+          count: 0, 
+          billing: 0,
+          unitPrice: job.cristalOI.price || 0
+        };
       }
       detailedLensStats[prodName].count += 0.5;
       detailedLensStats[prodName].billing += (job.cristalOI.price || 0) / 2;
+      if (!detailedLensStats[prodName].unitPrice && job.cristalOI.price) {
+        detailedLensStats[prodName].unitPrice = job.cristalOI.price;
+      }
     }
   });
 
@@ -304,8 +338,9 @@ export default function Dashboard({ campaign, jobs, localities }) {
               Consumo de Cristales Detallado
             </h3>
             <div className="table-xs">
-              <div className="table-xs-row header">
+              <div className="table-xs-row cols-4 header">
                 <div>Producto</div>
+                <div className="text-right">Precio Par</div>
                 <div className="text-right">Pares</div>
                 <div className="text-right">Total Est.</div>
               </div>
@@ -314,13 +349,17 @@ export default function Dashboard({ campaign, jobs, localities }) {
               ) : (
                 Object.entries(detailedLensStats)
                   .sort((a, b) => b[1].count - a[1].count)
-                  .map(([name, stats]) => (
-                    <div key={name} className="table-xs-row">
-                      <div className="font-semibold">{name}</div>
-                      <div className="text-right font-medium">{stats.count.toFixed(1)}</div>
-                      <div className="text-right font-medium">{formatMoney(stats.billing)}</div>
-                    </div>
-                  ))
+                  .map(([name, stats]) => {
+                    const unitPrice = stats.unitPrice || (stats.count > 0 ? stats.billing / stats.count : 0);
+                    return (
+                      <div key={name} className="table-xs-row cols-4">
+                        <div className="font-semibold">{name}</div>
+                        <div className="text-right font-medium text-secondary">{formatMoney(unitPrice)}</div>
+                        <div className="text-right font-medium">{stats.count.toFixed(1)}</div>
+                        <div className="text-right font-medium">{formatMoney(stats.billing)}</div>
+                      </div>
+                    );
+                  })
               )}
             </div>
           </div>
@@ -333,18 +372,23 @@ export default function Dashboard({ campaign, jobs, localities }) {
               Detalle de Calibrados
             </h3>
             <div className="table-xs">
-              <div className="table-xs-row header">
+              <div className="table-xs-row cols-4 header">
                 <div>Calibrado</div>
+                <div className="text-right">Precio Unit.</div>
                 <div className="text-right">Cant.</div>
                 <div className="text-right">Total Est.</div>
               </div>
-              {Object.entries(calibrationStats).map(([name, stats]) => (
-                <div key={name} className="table-xs-row">
-                  <div>{name}</div>
-                  <div className="text-right font-medium">{stats.count}</div>
-                  <div className="text-right font-medium">{formatMoney(stats.billing)}</div>
-                </div>
-              ))}
+              {Object.entries(calibrationStats).map(([name, stats]) => {
+                const unitPrice = stats.unitPrice || (stats.count > 0 ? stats.billing / stats.count : 0);
+                return (
+                  <div key={name} className="table-xs-row cols-4">
+                    <div>{name}</div>
+                    <div className="text-right font-medium text-secondary">{formatMoney(unitPrice)}</div>
+                    <div className="text-right font-medium">{stats.count}</div>
+                    <div className="text-right font-medium">{formatMoney(stats.billing)}</div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

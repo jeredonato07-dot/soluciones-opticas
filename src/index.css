@@ -850,6 +850,13 @@ strong {
   padding-bottom: 2px;
 }
 
+.table-xs-row.cols-4 {
+  grid-template-columns: 1fr 90px 55px 90px;
+  gap: 8px;
+  padding: 8px 10px;
+  font-size: 0.82rem;
+}
+
 .text-right { text-align: right; }
 .font-medium { font-weight: 500; }
 .font-semibold { font-weight: 600; }
