@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Copy, Plus, RotateCcw, AlertTriangle, Search, Sparkles, Check, Edit, X } from 'lucide-react';
-import priceList from '../data/lista_de_precios.json';
+import { getPriceList, getShortName } from './PriceList';
 import { getNextRefCode, saveTrabajo } from '../services/dataService';
 
 // Quick access definitions
@@ -72,18 +72,8 @@ const QUICK_LENSES_CONFIG = [
   }
 ];
 
-const getShortName = (item) => {
-  const baseName = item.name.split(' (')[0];
-  const typeMatch = item.name.match(/Tipo:\s*([^,\)]+)/);
-  if (typeMatch) {
-    const typeStr = typeMatch[1].trim();
-    const shortType = typeStr === 'Rango Extendido' ? 'Rango Ext' : typeStr;
-    return `${baseName} ${shortType}`;
-  }
-  return baseName;
-};
-
 export default function JobForm({ campaign, localities, jobs = [], editingJob = null, onJobSaved, onCancelEdit }) {
+  const priceList = getPriceList();
   const [localidadId, setLocalidadId] = useState(() => localStorage.getItem('optica_last_localidad_id') || '');
   const [isChangingLocality, setIsChangingLocality] = useState(false);
   const [refCode, setRefCode] = useState('');
@@ -97,7 +87,7 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
     const configItem = QUICK_LENSES_CONFIG[0];
     const matchedProduct = priceList.find(configItem.match);
     if (matchedProduct) {
-      const displayName = configItem.badge ? `${configItem.label} ${configItem.badge}` : configItem.label;
+      const displayName = getShortName(matchedProduct);
       defaultLensRef.current = {
         product: {
           id: matchedProduct.id,
@@ -248,7 +238,7 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
     const matchedProduct = priceList.find(configItem.match);
     if (!matchedProduct) return;
 
-    const displayName = configItem.badge ? `${configItem.label} ${configItem.badge}` : configItem.label;
+    const displayName = getShortName(matchedProduct);
 
     const formattedProduct = {
       id: matchedProduct.id,

@@ -9,7 +9,8 @@ import {
   CloudLightning, 
   Info,
   XCircle,
-  HelpCircle
+  HelpCircle,
+  Download
 } from 'lucide-react';
 import { 
   saveCampana, 
@@ -17,6 +18,7 @@ import {
   deleteLocalidad,
   subscribeCampanas, 
   syncLocalToFirebase,
+  downloadCloudToLocal,
   resetAllData
 } from '../services/dataService';
 import { isFirebaseConfigured, resetFirebase, getFirebaseDb } from '../firebase';
@@ -233,6 +235,48 @@ export default function Settings({
       localStorage.removeItem('optica_firebase_config');
       resetFirebase();
       setSyncStatusMsg('Error de conexión. Verifica las credenciales e intenta nuevamente.');
+    }
+  };
+
+  const handleDownloadCloudToLocal = async () => {
+    let db = getFirebaseDb();
+    
+    // If not connected yet but credentials exist in input fields, test connection
+    if (!db && apiKey && projectId) {
+      const config = {
+        apiKey: apiKey.trim(),
+        authDomain: authDomain.trim(),
+        projectId: projectId.trim(),
+        storageBucket: storageBucket.trim(),
+        messagingSenderId: messagingSenderId.trim(),
+        appId: appId.trim()
+      };
+      localStorage.setItem('optica_firebase_config', JSON.stringify(config));
+      resetFirebase();
+      db = getFirebaseDb();
+    }
+
+    if (!db) {
+      setSyncStatusMsg('Ingresa la API Key y Project ID de Firebase abajo para acceder a la nube.');
+      return;
+    }
+
+    setSyncStatusMsg('📥 Descargando copia exacta desde la nube (Solo Lectura)...');
+
+    try {
+      const counts = await downloadCloudToLocal(db);
+
+      // Desconectar Firebase localmente para congelar la copia en LocalStorage y no modificar la nube real
+      localStorage.removeItem('optica_firebase_config');
+      resetFirebase();
+      setFirebaseConfigured(false);
+
+      alert(`¡Copia local descargada con éxito!\n\nSe descargaron:\n- ${counts.campaignsCount} Campañas\n- ${counts.localitiesCount} Localidades\n- ${counts.jobsCount} Trabajos\n\nLa app en esta computadora ahora funciona en MODO LOCAL OFFLINE. Todo lo que cargues, modifiques o pruebes aquí NO afectará la base de datos real en uso con tu socio.`);
+      
+      window.location.reload();
+    } catch (err) {
+      console.error("Error al descargar datos de la nube:", err);
+      setSyncStatusMsg('Error al descargar copia de la nube. Verifica las credenciales.');
     }
   };
 
@@ -554,15 +598,25 @@ export default function Settings({
                   La aplicación está sincronizando todos los trabajos y campañas en tiempo real. Cualquier cambio se verá reflejado inmediatamente en la pantalla de tu socio.
                 </p>
                 <div className="divider"></div>
-                <div className="flex-between align-center">
+                <div className="flex-between align-center flex-wrap gap-2">
                   <span className="small text-secondary font-mono">Proyecto ID: {projectId}</span>
-                  <button 
-                    type="button" 
-                    className="btn btn-sm btn-outline text-danger border-danger"
-                    onClick={handleDisconnectFirebase}
-                  >
-                    Desconectar Nube
-                  </button>
+                  <div className="flex-align-center gap-2 flex-wrap">
+                    <button 
+                      type="button" 
+                      className="btn btn-sm btn-outline text-info border-info flex-align-center gap-1"
+                      onClick={handleDownloadCloudToLocal}
+                      title="Descarga la BD de la nube a tu LocalStorage y desconecta para hacer pruebas seguras"
+                    >
+                      <Download size={14} /> Copiar Nube a Local (Modo Pruebas)
+                    </button>
+                    <button 
+                      type="button" 
+                      className="btn btn-sm btn-outline text-danger border-danger"
+                      onClick={handleDisconnectFirebase}
+                    >
+                      Desconectar Nube
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -638,7 +692,7 @@ export default function Settings({
                     </div>
                   )}
 
-                  <div className="buttons-row justify-between">
+                  <div className="buttons-row justify-between flex-wrap gap-2">
                     <button
                       type="button"
                       className="btn btn-link btn-xs flex-align-center gap-1"
@@ -647,9 +701,20 @@ export default function Settings({
                       <HelpCircle size={14} /> {showInstructions ? 'Ocultar' : 'Mostrar'} Guía de Configuración
                     </button>
                     
-                    <button type="submit" className="btn btn-primary">
-                      Conectar y Sincronizar
-                    </button>
+                    <div className="flex-align-center gap-2 flex-wrap">
+                      <button 
+                        type="button" 
+                        className="btn btn-outline text-info border-info flex-align-center gap-2"
+                        onClick={handleDownloadCloudToLocal}
+                        title="Descarga una copia de solo lectura de la nube a LocalStorage para hacer pruebas seguras"
+                      >
+                        <Download size={16} /> Copiar Nube a Local (Modo Pruebas)
+                      </button>
+                      
+                      <button type="submit" className="btn btn-primary">
+                        Conectar y Sincronizar
+                      </button>
+                    </div>
                   </div>
                 </form>
 

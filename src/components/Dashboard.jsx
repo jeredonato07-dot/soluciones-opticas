@@ -9,9 +9,10 @@ import {
   Layers,
   FileText
 } from 'lucide-react';
-import priceList from '../data/lista_de_precios.json';
+import { getPriceList, getCanonicalLens } from './PriceList';
 
 function getCalibrationUnitPrice(cType, cProcess) {
+  const priceList = getPriceList();
   let processStr = 'ORGANICO STOCK';
   if (cProcess === 'Laboratorio') {
     processStr = 'ORGANICO LABORATORIO';
@@ -37,6 +38,8 @@ export default function Dashboard({ campaign, jobs, localities }) {
       </div>
     );
   }
+
+  const priceList = getPriceList();
 
   // Calculate statistics
   const totalJobs = jobs.length;
@@ -93,46 +96,48 @@ export default function Dashboard({ campaign, jobs, localities }) {
 
     // Cristales (OD + OI, priced at 50% per lens)
     if (job.cristalOD) {
-      const type = job.cristalOD.type || 'Stock';
+      const canonical = getCanonicalLens(job.cristalOD, priceList);
+      const type = canonical.type || job.cristalOD.type || 'Stock';
       if (lensStats[type]) {
         lensStats[type].count += 0.5; // Half a pair
-        lensStats[type].billing += (job.cristalOD.price || 0) / 2;
+        lensStats[type].billing += (canonical.price || job.cristalOD.price || 0) / 2;
       }
 
-      const prodName = job.cristalOD.name;
+      const prodName = canonical.name;
       if (!detailedLensStats[prodName]) {
         detailedLensStats[prodName] = { 
           count: 0, 
           billing: 0,
-          unitPrice: job.cristalOD.price || 0
+          unitPrice: canonical.price || job.cristalOD.price || 0
         };
       }
       detailedLensStats[prodName].count += 0.5;
-      detailedLensStats[prodName].billing += (job.cristalOD.price || 0) / 2;
-      if (!detailedLensStats[prodName].unitPrice && job.cristalOD.price) {
-        detailedLensStats[prodName].unitPrice = job.cristalOD.price;
+      detailedLensStats[prodName].billing += (canonical.price || job.cristalOD.price || 0) / 2;
+      if (!detailedLensStats[prodName].unitPrice && (canonical.price || job.cristalOD.price)) {
+        detailedLensStats[prodName].unitPrice = canonical.price || job.cristalOD.price;
       }
     }
     
     if (job.cristalOI) {
-      const type = job.cristalOI.type || 'Stock';
+      const canonical = getCanonicalLens(job.cristalOI, priceList);
+      const type = canonical.type || job.cristalOI.type || 'Stock';
       if (lensStats[type]) {
         lensStats[type].count += 0.5; // Half a pair
-        lensStats[type].billing += (job.cristalOI.price || 0) / 2;
+        lensStats[type].billing += (canonical.price || job.cristalOI.price || 0) / 2;
       }
 
-      const prodName = job.cristalOI.name;
+      const prodName = canonical.name;
       if (!detailedLensStats[prodName]) {
         detailedLensStats[prodName] = { 
           count: 0, 
           billing: 0,
-          unitPrice: job.cristalOI.price || 0
+          unitPrice: canonical.price || job.cristalOI.price || 0
         };
       }
       detailedLensStats[prodName].count += 0.5;
-      detailedLensStats[prodName].billing += (job.cristalOI.price || 0) / 2;
-      if (!detailedLensStats[prodName].unitPrice && job.cristalOI.price) {
-        detailedLensStats[prodName].unitPrice = job.cristalOI.price;
+      detailedLensStats[prodName].billing += (canonical.price || job.cristalOI.price || 0) / 2;
+      if (!detailedLensStats[prodName].unitPrice && (canonical.price || job.cristalOI.price)) {
+        detailedLensStats[prodName].unitPrice = canonical.price || job.cristalOI.price;
       }
     }
   });

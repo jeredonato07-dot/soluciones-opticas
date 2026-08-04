@@ -5,17 +5,19 @@ import {
   ListCollapse, 
   Settings2, 
   CloudLightning,
-  AlertTriangle
+  AlertTriangle,
+  BookOpen
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import JobForm from './components/JobForm';
 import JobList from './components/JobList';
 import Settings from './components/Settings';
+import PriceList from './components/PriceList';
 import { getLocalidades, subscribeCampanas, subscribeTrabajos } from './services/dataService';
 import { isFirebaseConfigured } from './firebase';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'entry', 'list', 'settings'
+  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'entry', 'list', 'pricelist', 'settings'
   const [editingJob, setEditingJob] = useState(null);
   const [localities, setLocalities] = useState([]);
   const [activeCampaign, setActiveCampaign] = useState(null);
@@ -119,6 +121,14 @@ export default function App() {
           </button>
 
           <button 
+            className={`nav-item ${activeTab === 'pricelist' ? 'active' : ''}`}
+            onClick={() => setActiveTab('pricelist')}
+          >
+            <BookOpen size={20} />
+            <span>Lista de Precios</span>
+          </button>
+
+          <button 
             className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
             onClick={() => setActiveTab('settings')}
           >
@@ -198,6 +208,10 @@ export default function App() {
                 // optional callback
               }}
             />
+          )}
+
+          {activeTab === 'pricelist' && (
+            <PriceList />
           )}
 
           {activeTab === 'settings' && (

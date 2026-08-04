@@ -13,6 +13,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { saveTrabajo, deleteTrabajo } from '../services/dataService';
+import { getCanonicalLens } from './PriceList';
 
 export default function JobList({ campaign, jobs, localities, onEditJob, onJobsUpdated }) {
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'logistics'
@@ -296,18 +297,26 @@ export default function JobList({ campaign, jobs, localities, onEditJob, onJobsU
                             <span className="badge-small bg-secondary-soft text-secondary">Pase de Cristales Propios</span>
                           ) : (
                             <>
-                              <div className="lens-detail">
-                                <span className="eye-lbl">OD:</span> 
-                                <span className="lens-text" title={job.cristalOD?.name || ''}>
-                                  {job.cristalOD ? `${job.cristalOD.name} (${formatMoney(job.cristalOD.price / 2)})` : <span className="text-muted">-</span>}
-                                </span>
-                              </div>
-                              <div className="lens-detail">
-                                <span className="eye-lbl">OI:</span> 
-                                <span className="lens-text" title={job.cristalOI?.name || ''}>
-                                  {job.cristalOI ? `${job.cristalOI.name} (${formatMoney(job.cristalOI.price / 2)})` : <span className="text-muted">-</span>}
-                                </span>
-                              </div>
+                              {(() => {
+                                const od = getCanonicalLens(job.cristalOD);
+                                const oi = getCanonicalLens(job.cristalOI);
+                                return (
+                                  <>
+                                    <div className="lens-detail">
+                                      <span className="eye-lbl">OD:</span> 
+                                      <span className="lens-text" title={od?.name || ''}>
+                                        {od ? `${od.name} (${formatMoney(od.price / 2)})` : <span className="text-muted">-</span>}
+                                      </span>
+                                    </div>
+                                    <div className="lens-detail">
+                                      <span className="eye-lbl">OI:</span> 
+                                      <span className="lens-text" title={oi?.name || ''}>
+                                        {oi ? `${oi.name} (${formatMoney(oi.price / 2)})` : <span className="text-muted">-</span>}
+                                      </span>
+                                    </div>
+                                  </>
+                                );
+                              })()}
                             </>
                           )}
                         </div>

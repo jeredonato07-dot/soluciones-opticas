@@ -570,6 +570,40 @@ export const syncLocalToFirebase = async (firebaseDbInstance) => {
   localStorage.removeItem(KEYS.JOBS);
 };
 
+// --- DOWNLOAD CLOUD DATA TO LOCALSTORAGE (READ-ONLY) ---
+// Fetches all cloud data and saves it locally for safe offline testing
+export const downloadCloudToLocal = async (firebaseDbInstance) => {
+  if (!firebaseDbInstance) {
+    throw new Error("No hay conexión activa con Firebase.");
+  }
+
+  // 1. Fetch Localities from Firebase (Read Only)
+  const locSnap = await getDocs(collection(firebaseDbInstance, 'localidades'));
+  const cloudLocs = [];
+  locSnap.forEach(docSnap => cloudLocs.push(docSnap.data()));
+
+  // 2. Fetch Campaigns from Firebase (Read Only)
+  const campSnap = await getDocs(collection(firebaseDbInstance, 'campanas'));
+  const cloudCampanas = [];
+  campSnap.forEach(docSnap => cloudCampanas.push({ id: docSnap.id, ...docSnap.data() }));
+
+  // 3. Fetch Jobs from Firebase (Read Only)
+  const jobSnap = await getDocs(collection(firebaseDbInstance, 'trabajos'));
+  const cloudJobs = [];
+  jobSnap.forEach(docSnap => cloudJobs.push({ id: docSnap.id, ...docSnap.data() }));
+
+  // Save downloaded data into LocalStorage
+  if (cloudLocs.length > 0) setLocalData(KEYS.LOCALITIES, cloudLocs);
+  if (cloudCampanas.length > 0) setLocalData(KEYS.CAMPAIGNS, cloudCampanas);
+  if (cloudJobs.length > 0) setLocalData(KEYS.JOBS, cloudJobs);
+
+  return {
+    localitiesCount: cloudLocs.length,
+    campaignsCount: cloudCampanas.length,
+    jobsCount: cloudJobs.length
+  };
+};
+
 export const resetAllData = async () => {
   const db = getFirebaseDb();
   if (db) {
