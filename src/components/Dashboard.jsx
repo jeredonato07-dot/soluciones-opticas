@@ -61,14 +61,7 @@ export default function Dashboard({ campaign, jobs, localities }) {
   });
 
   // Calibration types breakdown (per pair/job price)
-  const calibrationStats = {
-    'Aro Completo (Stock)': { count: 0, billing: 0, unitPrice: getCalibrationUnitPrice('Aro Completo', 'Stock') },
-    'Aro Completo (Laboratorio)': { count: 0, billing: 0, unitPrice: getCalibrationUnitPrice('Aro Completo', 'Laboratorio') },
-    'Ranurado (Stock)': { count: 0, billing: 0, unitPrice: getCalibrationUnitPrice('Ranurado', 'Stock') },
-    'Ranurado (Laboratorio)': { count: 0, billing: 0, unitPrice: getCalibrationUnitPrice('Ranurado', 'Laboratorio') },
-    'Perforado (Stock)': { count: 0, billing: 0, unitPrice: getCalibrationUnitPrice('Perforado', 'Stock') },
-    'Perforado (Laboratorio)': { count: 0, billing: 0, unitPrice: getCalibrationUnitPrice('Perforado', 'Laboratorio') }
-  };
+  const calibrationStats = {};
   
   // Lens types breakdown (Stock vs Laboratorio, in pairs)
   const lensStats = {
@@ -80,17 +73,28 @@ export default function Dashboard({ campaign, jobs, localities }) {
   const detailedLensStats = {};
 
   jobs.forEach(job => {
-    // Calibrado (always full price)
+    // Calibrado
     const cType = job.calibradoTipo || 'Aro Completo';
     const cProcess = job.calibradoProceso || 'Stock';
-    const displayName = `${cType} (${cProcess})`;
+    
+    // Determine if it is a half-calibration (1 lens, not Pase de Cristales)
+    const hasOD = !!job.cristalOD;
+    const hasOI = !!job.cristalOI;
+    const isSingleEye = (hasOD && !hasOI) || (!hasOD && hasOI);
+    const isHalf = isSingleEye && (cProcess !== 'Pase de Cristales');
+    
+    const suffix = isHalf ? ' - 1/2 Par' : ' - Par';
+    const displayName = `${cType} (${cProcess})${suffix}`;
+    
+    const basePrice = getCalibrationUnitPrice(cType, cProcess);
+    const unitPrice = isHalf ? (basePrice / 2) : basePrice;
     
     if (!calibrationStats[displayName]) {
-      calibrationStats[displayName] = { count: 0, billing: 0, unitPrice: getCalibrationUnitPrice(cType, cProcess) };
+      calibrationStats[displayName] = { count: 0, billing: 0, unitPrice: unitPrice };
     }
     calibrationStats[displayName].count++;
-    calibrationStats[displayName].billing += (job.calibradoPrecio || 0);
-    if (!calibrationStats[displayName].unitPrice && job.calibradoPrecio) {
+    calibrationStats[displayName].billing += (job.calibradoPrecio !== undefined ? job.calibradoPrecio : unitPrice);
+    if (!calibrationStats[displayName].unitPrice && job.calibradoPrecio !== undefined) {
       calibrationStats[displayName].unitPrice = job.calibradoPrecio;
     }
 
@@ -383,17 +387,19 @@ export default function Dashboard({ campaign, jobs, localities }) {
                 <div className="text-right">Cant.</div>
                 <div className="text-right">Total Est.</div>
               </div>
-              {Object.entries(calibrationStats).map(([name, stats]) => {
-                const unitPrice = stats.unitPrice || (stats.count > 0 ? stats.billing / stats.count : 0);
-                return (
-                  <div key={name} className="table-xs-row cols-4">
-                    <div>{name}</div>
-                    <div className="text-right font-medium text-secondary">{formatMoney(unitPrice)}</div>
-                    <div className="text-right font-medium">{stats.count}</div>
-                    <div className="text-right font-medium">{formatMoney(stats.billing)}</div>
-                  </div>
-                );
-              })}
+              {Object.entries(calibrationStats)
+                .sort((a, b) => b[1].count - a[1].count)
+                .map(([name, stats]) => {
+                  const unitPrice = stats.count > 0 ? stats.billing / stats.count : 0;
+                  return (
+                    <div key={name} className="table-xs-row cols-4">
+                      <div className="font-semibold">{name}</div>
+                      <div className="text-right font-medium text-secondary">{formatMoney(unitPrice)}</div>
+                      <div className="text-right font-medium">{stats.count}</div>
+                      <div className="text-right font-medium">{formatMoney(stats.billing)}</div>
+                    </div>
+                  );
+                })}
             </div>
           </div>
         </div>
