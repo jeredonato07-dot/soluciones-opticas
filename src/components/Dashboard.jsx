@@ -83,19 +83,18 @@ export default function Dashboard({ campaign, jobs, localities }) {
     const isSingleEye = (hasOD && !hasOI) || (!hasOD && hasOI);
     const isHalf = isSingleEye && (cProcess !== 'Pase de Cristales');
     
-    const suffix = isHalf ? ' - 1/2 Par' : ' - Par';
-    const displayName = `${cType} (${cProcess})${suffix}`;
+    const displayName = `${cType} (${cProcess})`;
+    const calCount = isHalf ? 0.5 : 1.0;
     
     const basePrice = getCalibrationUnitPrice(cType, cProcess);
-    const unitPrice = isHalf ? (basePrice / 2) : basePrice;
     
     if (!calibrationStats[displayName]) {
-      calibrationStats[displayName] = { count: 0, billing: 0, unitPrice: unitPrice };
+      calibrationStats[displayName] = { count: 0, billing: 0, unitPrice: basePrice };
     }
-    calibrationStats[displayName].count++;
-    calibrationStats[displayName].billing += (job.calibradoPrecio !== undefined ? job.calibradoPrecio : unitPrice);
+    calibrationStats[displayName].count += calCount;
+    calibrationStats[displayName].billing += (job.calibradoPrecio !== undefined ? job.calibradoPrecio : (isHalf ? basePrice / 2 : basePrice));
     if (!calibrationStats[displayName].unitPrice && job.calibradoPrecio !== undefined) {
-      calibrationStats[displayName].unitPrice = job.calibradoPrecio;
+      calibrationStats[displayName].unitPrice = isHalf ? job.calibradoPrecio * 2 : job.calibradoPrecio;
     }
 
     // Cristales (OD + OI, priced at 50% per lens)
@@ -380,27 +379,27 @@ export default function Dashboard({ campaign, jobs, localities }) {
               <TrendingUp size={20} className="text-primary" />
               Detalle de Calibrados
             </h3>
-            <div className="table-xs">
-              <div className="table-xs-row cols-4 header">
-                <div>Calibrado</div>
-                <div className="text-right">Precio Unit.</div>
-                <div className="text-right">Cant.</div>
-                <div className="text-right">Total Est.</div>
-              </div>
-              {Object.entries(calibrationStats)
-                .sort((a, b) => b[1].count - a[1].count)
-                .map(([name, stats]) => {
-                  const unitPrice = stats.count > 0 ? stats.billing / stats.count : 0;
-                  return (
-                    <div key={name} className="table-xs-row cols-4">
-                      <div className="font-semibold">{name}</div>
-                      <div className="text-right font-medium text-secondary">{formatMoney(unitPrice)}</div>
-                      <div className="text-right font-medium">{stats.count}</div>
-                      <div className="text-right font-medium">{formatMoney(stats.billing)}</div>
-                    </div>
-                  );
-                })}
-            </div>
+             <div className="table-xs">
+               <div className="table-xs-row cols-4 header">
+                 <div>Calibrado</div>
+                 <div className="text-right">Precio Par</div>
+                 <div className="text-right">Pares</div>
+                 <div className="text-right">Total Est.</div>
+               </div>
+               {Object.entries(calibrationStats)
+                 .sort((a, b) => b[1].count - a[1].count)
+                 .map(([name, stats]) => {
+                   const unitPrice = stats.count > 0 ? stats.billing / stats.count : 0;
+                   return (
+                     <div key={name} className="table-xs-row cols-4">
+                       <div className="font-semibold">{name}</div>
+                       <div className="text-right font-medium text-secondary">{formatMoney(unitPrice)}</div>
+                       <div className="text-right font-medium">{stats.count.toFixed(1)}</div>
+                       <div className="text-right font-medium">{formatMoney(stats.billing)}</div>
+                     </div>
+                   );
+                 })}
+             </div>
           </div>
         </div>
       </div>
