@@ -74,8 +74,8 @@ export default function Dashboard({ campaign, jobs, localities }) {
 
   jobs.forEach(job => {
     // Calibrado
-    const cType = job.calibradoTipo || 'Aro Completo';
-    const cProcess = job.calibradoProceso || 'Stock';
+    const cType = (job.calibradoTipo || 'Aro Completo').replace(/\s*-\s*(1\/2\s*Par|Par)/gi, '').trim();
+    const cProcess = (job.calibradoProceso || 'Stock').replace(/\s*-\s*(1\/2\s*Par|Par)/gi, '').trim();
     
     // Determine if it is a half-calibration (1 lens, not Pase de Cristales)
     const hasOD = !!job.cristalOD;
