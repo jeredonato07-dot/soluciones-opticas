@@ -113,8 +113,11 @@ export default function Settings({
         ...camp,
         status: nextStatus
       });
-      // Update local state if active
-      if (activeCampaign && activeCampaign.id === camp.id) {
+      // If we are closing the current active campaign, clear it
+      if (activeCampaign && activeCampaign.id === camp.id && nextStatus === 'cerrada') {
+        setActiveCampaign(null);
+        localStorage.removeItem('optica_active_campaign_id');
+      } else if (activeCampaign && activeCampaign.id === camp.id) {
         setActiveCampaign({ ...activeCampaign, status: nextStatus });
       }
     } catch (e) {

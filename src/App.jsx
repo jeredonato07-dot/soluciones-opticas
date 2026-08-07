@@ -40,13 +40,15 @@ export default function App() {
     const storedId = localStorage.getItem('optica_active_campaign_id');
     const unsub = subscribeCampanas((campaignList) => {
       if (campaignList.length > 0) {
-        // Find stored active campaign, or first active, or first in general
-        const active = campaignList.find(c => c.id === storedId) || 
-                       campaignList.find(c => c.status === 'activa') || 
-                       campaignList[0];
+        // Find stored campaign ONLY if it is still active
+        const storedActive = campaignList.find(c => c.id === storedId && c.status === 'activa');
+        const firstActive = campaignList.find(c => c.status === 'activa');
+        const active = storedActive || firstActive || null;
         setActiveCampaign(active);
         if (active) {
           localStorage.setItem('optica_active_campaign_id', active.id);
+        } else {
+          localStorage.removeItem('optica_active_campaign_id');
         }
       } else {
         setActiveCampaign(null);
