@@ -858,6 +858,15 @@ strong {
   padding-bottom: 2px;
 }
 
+.table-xs-row.footer {
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: 700;
+  border-top: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  margin-top: 6px;
+}
+
 .table-xs-row.cols-4 {
   grid-template-columns: 1fr 90px 55px 90px;
   gap: 8px;

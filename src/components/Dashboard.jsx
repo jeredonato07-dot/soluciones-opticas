@@ -174,6 +174,18 @@ export default function Dashboard({ campaign, jobs, localities }) {
   const totalLensUnits = totalLensPairs * 2;
   const totalCalibrationPairs = Object.values(calibrationStats).reduce((acc, curr) => acc + curr.count, 0);
 
+  const totalLensBilling = Object.values(detailedLensStats).reduce((acc, curr) => {
+    const unitPrice = curr.unitPrice || (curr.count > 0 ? curr.billing / curr.count : 0);
+    return acc + (curr.count * unitPrice);
+  }, 0);
+
+  const totalCalibrationBilling = Object.values(calibrationStats).reduce((acc, curr) => {
+    const unitPrice = curr.unitPrice || (curr.count > 0 ? curr.billing / curr.count : 0);
+    return acc + (curr.count * unitPrice);
+  }, 0);
+
+  const paseDeCristalesCount = Math.max(0, totalCalibrationPairs - totalLensPairs);
+
   const formatMoney = (val) => {
     return new Intl.NumberFormat('es-AR', {
       style: 'currency',
@@ -247,6 +259,29 @@ export default function Dashboard({ campaign, jobs, localities }) {
             <span className="stat-label">Pendientes en Lab</span>
             <h3 className="stat-value">{statusCounts['Pedido Lab'] + statusCounts['Sin Pedir']}</h3>
           </div>
+        </div>
+      </div>
+
+      {/* Resumen Comparativo de Facturación y Unidades */}
+      <div className="glass-card p-3 mb-4 bg-dark-soft border border-primary-soft">
+        <div className="flex-between align-center flex-wrap gap-3">
+          <div className="flex-align-center gap-3 flex-wrap">
+            <div className="badge-small bg-primary text-white font-mono font-bold px-2 py-1">
+              RESUMEN FINANCIERO DE UNIDADES
+            </div>
+            <div className="flex-align-center gap-3 font-sm flex-wrap">
+              <span><strong>Trabajos:</strong> {totalJobs}</span>
+              <span className="text-muted">|</span>
+              <span><strong>Cristales:</strong> {formatPairs(totalLensPairs)} pares ({formatMoney(totalLensBilling)})</span>
+              <span className="text-muted">|</span>
+              <span><strong>Calibrados:</strong> {formatPairs(totalCalibrationPairs)} pares ({formatMoney(totalCalibrationBilling)})</span>
+            </div>
+          </div>
+          {paseDeCristalesCount > 0 && (
+            <span className="badge-small bg-warning-soft text-warning font-xs" title="Trabajos con solo cobro de calibrado / armado">
+              ℹ️ {formatPairs(paseDeCristalesCount)} par(es) con Pase de Cristales / Armado (sin venta de cristales)
+            </span>
+          )}
         </div>
       </div>
 
@@ -374,6 +409,14 @@ export default function Dashboard({ campaign, jobs, localities }) {
                     );
                   })
               )}
+              {Object.keys(detailedLensStats).length > 0 && (
+                <div className="table-xs-row cols-4 footer">
+                  <div className="font-bold">TOTAL CRISTALES</div>
+                  <div className="text-right text-muted">-</div>
+                  <div className="text-right font-bold">{formatPairs(totalLensPairs)}</div>
+                  <div className="text-right font-bold">{formatMoney(totalLensBilling)}</div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -410,6 +453,14 @@ export default function Dashboard({ campaign, jobs, localities }) {
                      </div>
                    );
                  })}
+               {Object.keys(calibrationStats).length > 0 && (
+                 <div className="table-xs-row cols-4 footer">
+                   <div className="font-bold">TOTAL CALIBRADOS</div>
+                   <div className="text-right text-muted">-</div>
+                   <div className="text-right font-bold">{formatPairs(totalCalibrationPairs)}</div>
+                   <div className="text-right font-bold">{formatMoney(totalCalibrationBilling)}</div>
+                 </div>
+               )}
              </div>
           </div>
         </div>
