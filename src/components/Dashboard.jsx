@@ -43,7 +43,6 @@ export default function Dashboard({ campaign, jobs, localities }) {
 
   // Calculate statistics
   const totalJobs = jobs.length;
-  const totalBilling = jobs.reduce((acc, job) => acc + (job.precioTotal || 0), 0);
   
   // Status breakdown
   const statusCounts = {
@@ -184,6 +183,7 @@ export default function Dashboard({ campaign, jobs, localities }) {
     return acc + (curr.count * unitPrice);
   }, 0);
 
+  const totalBilling = totalLensBilling + totalCalibrationBilling;
   const paseDeCristalesCount = Math.max(0, totalCalibrationPairs - totalLensPairs);
 
   const formatMoney = (val) => {
