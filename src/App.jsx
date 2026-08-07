@@ -6,9 +6,11 @@ import {
   Settings2, 
   CloudLightning,
   AlertTriangle,
-  BookOpen
+  BookOpen,
+  BarChart3
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
+import GeneralDashboard from './components/GeneralDashboard';
 import JobForm from './components/JobForm';
 import JobList from './components/JobList';
 import Settings from './components/Settings';
@@ -17,7 +19,7 @@ import { getLocalidades, subscribeCampanas, subscribeTrabajos } from './services
 import { isFirebaseConfigured } from './firebase';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'entry', 'list', 'pricelist', 'settings'
+  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'general', 'entry', 'list', 'pricelist', 'settings'
   const [editingJob, setEditingJob] = useState(null);
   const [localities, setLocalities] = useState([]);
   const [activeCampaign, setActiveCampaign] = useState(null);
@@ -99,6 +101,14 @@ export default function App() {
             <TrendingUp size={20} />
             <span>Dashboard</span>
           </button>
+
+          <button 
+            className={`nav-item ${activeTab === 'general' ? 'active' : ''}`}
+            onClick={() => setActiveTab('general')}
+          >
+            <BarChart3 size={20} />
+            <span>Control General</span>
+          </button>
           
           <button 
             className={`nav-item ${activeTab === 'entry' ? 'active' : ''}`}
@@ -176,6 +186,16 @@ export default function App() {
             />
           )}
 
+          {activeTab === 'general' && (
+            <GeneralDashboard 
+              localities={localities} 
+              onSelectCampaign={(camp) => {
+                handleActiveCampaignChange(camp);
+                setActiveTab('dashboard');
+              }}
+            />
+          )}
+
           {activeTab === 'entry' && activeCampaign && (
             <JobForm 
               campaign={activeCampaign} 
@@ -217,8 +237,8 @@ export default function App() {
           {activeTab === 'settings' && (
             <Settings 
               localities={localities} 
-              jobs={jobs}
-              activeCampaign={activeCampaign} 
+              jobs={jobs} 
+              activeCampaign={activeCampaign}
               setActiveCampaign={handleActiveCampaignChange}
               onLocalitiesUpdated={fetchLocalities}
             />

@@ -279,6 +279,27 @@ export const subscribeTrabajos = (campanaId, onData) => {
   };
 };
 
+export const subscribeAllJobs = (onData) => {
+  const db = getFirebaseDb();
+  if (db) {
+    const q = query(collection(db, 'trabajos'));
+    return onSnapshot(q, (snapshot) => {
+      const list = [];
+      snapshot.forEach(doc => {
+        list.push({ id: doc.id, ...doc.data() });
+      });
+      onData(list);
+    }, (error) => {
+      console.error("Firebase subscribeAllJobs error:", error);
+      onData(getLocalData(KEYS.JOBS));
+    });
+  }
+
+  // Local Storage Fallback
+  onData(getLocalData(KEYS.JOBS));
+  return () => {};
+};
+
 // Helper to generate the next reference code for a locality in a campaign
 export const getNextRefCode = async (campanaId, localidadId, localidadCode) => {
   const db = getFirebaseDb();
