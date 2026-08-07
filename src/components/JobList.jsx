@@ -10,65 +10,16 @@ import {
   List, 
   Check, 
   Calendar,
-  AlertCircle,
-  AlertTriangle,
-  CheckCircle2,
-  X
+  AlertCircle
 } from 'lucide-react';
 import { saveTrabajo, deleteTrabajo } from '../services/dataService';
 import { getCanonicalLens } from './PriceList';
-
-export function auditCampaignSequences(jobs, localities) {
-  const auditResults = [];
-
-  localities.forEach(loc => {
-    const locJobs = jobs.filter(j => j.localidadId === loc.id);
-    if (locJobs.length === 0) return;
-
-    const nums = [];
-    locJobs.forEach(job => {
-      let seq = job.sequence;
-      if (!seq && job.refCode) {
-        const numMatch = job.refCode.match(/\d+/);
-        if (numMatch) seq = parseInt(numMatch[0], 10);
-      }
-      if (seq) nums.push({ seq, refCode: job.refCode, paciente: job.paciente || 'S/D' });
-    });
-
-    if (nums.length === 0) return;
-
-    nums.sort((a, b) => a.seq - b.seq);
-    const presentNums = new Set(nums.map(n => n.seq));
-    const maxSeq = Math.max(...nums.map(n => n.seq));
-    const minSeq = Math.min(...nums.map(n => n.seq));
-
-    const missingCodes = [];
-    for (let i = 1; i <= maxSeq; i++) {
-      if (!presentNums.has(i)) {
-        missingCodes.push(`${i}${loc.code}`);
-      }
-    }
-
-    auditResults.push({
-      localidad: loc,
-      totalLoaded: locJobs.length,
-      minSeq,
-      maxSeq,
-      missingCodes,
-      isComplete: missingCodes.length === 0,
-      jobs: nums
-    });
-  });
-
-  return auditResults;
-}
 
 export default function JobList({ campaign, jobs, localities, onEditJob, onJobsUpdated }) {
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'logistics'
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocFilter, setSelectedLocFilter] = useState(() => localStorage.getItem('optica_last_localidad_id') || '');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('');
-  const [showAuditModal, setShowAuditModal] = useState(false);
 
   // Toggle status cycling
   const cycleStatus = async (job) => {
@@ -289,23 +240,13 @@ export default function JobList({ campaign, jobs, localities, onEditJob, onJobsU
           </div>
         )}
 
-        <div className="flex-align-center gap-2 ml-auto-desktop flex-wrap">
-          <button 
-            className="btn btn-sm btn-outline text-warning border-warning flex-align-center gap-1"
-            onClick={() => setShowAuditModal(true)}
-            title="Escanear secuencia numérica y detectar huecos o trabajos faltantes"
-          >
-            <AlertTriangle size={16} /> Auditar Secuencia (Control Excel)
-          </button>
-          
-          <button 
-            className="btn btn-sm btn-outline flex-align-center gap-1"
-            onClick={exportToCSV}
-            disabled={jobs.length === 0}
-          >
-            <FileSpreadsheet size={16} /> Exportar Excel (.csv)
-          </button>
-        </div>
+        <button 
+          className="btn btn-sm btn-outline flex-align-center gap-1 ml-auto-desktop"
+          onClick={exportToCSV}
+          disabled={jobs.length === 0}
+        >
+          <FileSpreadsheet size={16} /> Exportar Excel (.csv)
+        </button>
       </div>
 
       {/* Main View rendering */}
