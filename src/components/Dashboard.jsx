@@ -356,6 +356,7 @@ export default function Dashboard({ campaign, jobs, localities }) {
                   .sort((a, b) => b[1].count - a[1].count)
                   .map(([name, stats], index) => {
                     const unitPrice = stats.unitPrice || (stats.count > 0 ? stats.billing / stats.count : 0);
+                    const rowTotal = stats.count * unitPrice;
                     return (
                       <div key={name} className="table-xs-row cols-4">
                         <div className="font-semibold flex-align-center gap-1">
@@ -368,7 +369,7 @@ export default function Dashboard({ campaign, jobs, localities }) {
                         </div>
                         <div className="text-right font-medium text-secondary">{formatMoney(unitPrice)}</div>
                         <div className="text-right font-medium">{formatPairs(stats.count)}</div>
-                        <div className="text-right font-medium">{formatMoney(stats.billing)}</div>
+                        <div className="text-right font-medium">{formatMoney(rowTotal)}</div>
                       </div>
                     );
                   })
@@ -398,13 +399,14 @@ export default function Dashboard({ campaign, jobs, localities }) {
                {Object.entries(calibrationStats)
                  .sort((a, b) => b[1].count - a[1].count)
                  .map(([name, stats]) => {
-                   const unitPrice = stats.count > 0 ? stats.billing / stats.count : 0;
+                   const unitPrice = stats.unitPrice || (stats.count > 0 ? stats.billing / stats.count : 0);
+                   const rowTotal = stats.count * unitPrice;
                    return (
                      <div key={name} className="table-xs-row cols-4">
                        <div className="font-semibold">{name}</div>
                        <div className="text-right font-medium text-secondary">{formatMoney(unitPrice)}</div>
                        <div className="text-right font-medium">{formatPairs(stats.count)}</div>
-                       <div className="text-right font-medium">{formatMoney(stats.billing)}</div>
+                       <div className="text-right font-medium">{formatMoney(rowTotal)}</div>
                      </div>
                    );
                  })}
