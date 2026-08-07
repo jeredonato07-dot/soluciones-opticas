@@ -72,8 +72,6 @@ export default function GeneralDashboard({ localities, onSelectCampaign }) {
   const filteredJobs = allJobs.filter(j => campaignIdsSet.has(j.campanaId));
 
   // --- CALCULATE GLOBAL STATS ---
-  const totalJobsCount = filteredJobs.length;
-
   const detailedLensStats = {};
   const calibrationStats = {};
   const localityStats = {};
@@ -85,12 +83,15 @@ export default function GeneralDashboard({ localities, onSelectCampaign }) {
   // Calculate per campaign breakdowns
   const campaignBreakdowns = filteredCampaigns.map(camp => {
     const campJobs = filteredJobs.filter(j => j.campanaId === camp.id);
-    let campLensPairs = 0;
-    let campLensBilling = 0;
-    let campCalibPairs = 0;
-    let campCalibBilling = 0;
+    const campLensStats = {};
+    const campCalibrationStats = {};
 
     campJobs.forEach(job => {
+      // Localities
+      if (localityStats[job.localidadId]) {
+        localityStats[job.localidadId].jobsCount++;
+      }
+
       // Calibrado
       const cType = (job.calibradoTipo || 'Aro Completo').replace(/\s*-\s*(1\/2\s*Par|Par)/gi, '').trim();
       const cProcess = (job.calibradoProceso || 'Stock').replace(/\s*-\s*(1\/2\s*Par|Par)/gi, '').trim();
@@ -107,15 +108,24 @@ export default function GeneralDashboard({ localities, onSelectCampaign }) {
       const calibPrice = job.calibradoPrecio !== undefined ? job.calibradoPrecio : (isHalf ? basePrice / 2 : basePrice);
       const calibUnitPrice = (isHalf ? calibPrice * 2 : calibPrice) || basePrice;
 
-      campCalibPairs += calCount;
-      campCalibBilling += (calCount * calibUnitPrice);
+      if (!campCalibrationStats[displayName]) {
+        campCalibrationStats[displayName] = { count: 0, billing: 0, unitPrice: basePrice };
+      }
+      campCalibrationStats[displayName].count += calCount;
+      campCalibrationStats[displayName].billing += calibPrice;
+      if (!campCalibrationStats[displayName].unitPrice && job.calibradoPrecio !== undefined) {
+        campCalibrationStats[displayName].unitPrice = calibUnitPrice;
+      }
 
       // Global Calibrations aggregation
       if (!calibrationStats[displayName]) {
-        calibrationStats[displayName] = { count: 0, billing: 0, unitPrice: calibUnitPrice };
+        calibrationStats[displayName] = { count: 0, billing: 0, unitPrice: basePrice };
       }
       calibrationStats[displayName].count += calCount;
-      calibrationStats[displayName].billing += (calCount * calibUnitPrice);
+      calibrationStats[displayName].billing += calibPrice;
+      if (!calibrationStats[displayName].unitPrice && job.calibradoPrecio !== undefined) {
+        calibrationStats[displayName].unitPrice = calibUnitPrice;
+      }
 
       // Cristales OD
       if (job.cristalOD) {
@@ -123,14 +133,24 @@ export default function GeneralDashboard({ localities, onSelectCampaign }) {
         const prodName = canonical.name;
         const uPrice = canonical.price || job.cristalOD.price || 0;
 
-        campLensPairs += 0.5;
-        campLensBilling += (0.5 * uPrice);
+        if (!campLensStats[prodName]) {
+          campLensStats[prodName] = { count: 0, billing: 0, unitPrice: uPrice };
+        }
+        campLensStats[prodName].count += 0.5;
+        campLensStats[prodName].billing += uPrice / 2;
+        if (!campLensStats[prodName].unitPrice && uPrice) {
+          campLensStats[prodName].unitPrice = uPrice;
+        }
 
+        // Global detailedLensStats
         if (!detailedLensStats[prodName]) {
           detailedLensStats[prodName] = { count: 0, billing: 0, unitPrice: uPrice };
         }
         detailedLensStats[prodName].count += 0.5;
-        detailedLensStats[prodName].billing += (0.5 * uPrice);
+        detailedLensStats[prodName].billing += uPrice / 2;
+        if (!detailedLensStats[prodName].unitPrice && uPrice) {
+          detailedLensStats[prodName].unitPrice = uPrice;
+        }
       }
 
       // Cristales OI
@@ -139,46 +159,57 @@ export default function GeneralDashboard({ localities, onSelectCampaign }) {
         const prodName = canonical.name;
         const uPrice = canonical.price || job.cristalOI.price || 0;
 
-        campLensPairs += 0.5;
-        campLensBilling += (0.5 * uPrice);
+        if (!campLensStats[prodName]) {
+          campLensStats[prodName] = { count: 0, billing: 0, unitPrice: uPrice };
+        }
+        campLensStats[prodName].count += 0.5;
+        campLensStats[prodName].billing += uPrice / 2;
+        if (!campLensStats[prodName].unitPrice && uPrice) {
+          campLensStats[prodName].unitPrice = uPrice;
+        }
 
+        // Global detailedLensStats
         if (!detailedLensStats[prodName]) {
           detailedLensStats[prodName] = { count: 0, billing: 0, unitPrice: uPrice };
         }
         detailedLensStats[prodName].count += 0.5;
-        detailedLensStats[prodName].billing += (0.5 * uPrice);
-      }
-
-      // Localities
-      if (localityStats[job.localidadId]) {
-        localityStats[job.localidadId].jobsCount++;
+        detailedLensStats[prodName].billing += uPrice / 2;
+        if (!detailedLensStats[prodName].unitPrice && uPrice) {
+          detailedLensStats[prodName].unitPrice = uPrice;
+        }
       }
     });
+
+    const lensPairs = Object.values(campLensStats).reduce((acc, curr) => acc + curr.count, 0);
+    const calibPairs = Object.values(campCalibrationStats).reduce((acc, curr) => acc + curr.count, 0);
+
+    const lensBilling = Object.values(campLensStats).reduce((acc, curr) => {
+      const unitPrice = curr.unitPrice || (curr.count > 0 ? curr.billing / curr.count : 0);
+      return acc + (curr.count * unitPrice);
+    }, 0);
+
+    const calibBilling = Object.values(campCalibrationStats).reduce((acc, curr) => {
+      const unitPrice = curr.unitPrice || (curr.count > 0 ? curr.billing / curr.count : 0);
+      return acc + (curr.count * unitPrice);
+    }, 0);
 
     return {
       campaign: camp,
       jobsCount: campJobs.length,
-      lensPairs: campLensPairs,
-      lensBilling: campLensBilling,
-      calibPairs: campCalibPairs,
-      calibBilling: campCalibBilling,
-      totalBilling: campLensBilling + campCalibBilling
+      lensPairs,
+      lensBilling,
+      calibPairs,
+      calibBilling,
+      totalBilling: lensBilling + calibBilling
     };
   });
 
-  const totalGlobalLensPairs = Object.values(detailedLensStats).reduce((acc, curr) => acc + curr.count, 0);
+  const totalJobsCount = campaignBreakdowns.reduce((acc, curr) => acc + curr.jobsCount, 0);
+  const totalGlobalLensPairs = campaignBreakdowns.reduce((acc, curr) => acc + curr.lensPairs, 0);
   const totalGlobalLensUnits = totalGlobalLensPairs * 2;
-  const totalGlobalLensBilling = Object.values(detailedLensStats).reduce((acc, curr) => {
-    const unitPrice = curr.unitPrice || (curr.count > 0 ? curr.billing / curr.count : 0);
-    return acc + (curr.count * unitPrice);
-  }, 0);
-
-  const totalGlobalCalibPairs = Object.values(calibrationStats).reduce((acc, curr) => acc + curr.count, 0);
-  const totalGlobalCalibBilling = Object.values(calibrationStats).reduce((acc, curr) => {
-    const unitPrice = curr.unitPrice || (curr.count > 0 ? curr.billing / curr.count : 0);
-    return acc + (curr.count * unitPrice);
-  }, 0);
-
+  const totalGlobalLensBilling = campaignBreakdowns.reduce((acc, curr) => acc + curr.lensBilling, 0);
+  const totalGlobalCalibPairs = campaignBreakdowns.reduce((acc, curr) => acc + curr.calibPairs, 0);
+  const totalGlobalCalibBilling = campaignBreakdowns.reduce((acc, curr) => acc + curr.calibBilling, 0);
   const totalGlobalBilling = totalGlobalLensBilling + totalGlobalCalibBilling;
 
   return (
