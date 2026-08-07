@@ -83,6 +83,15 @@ export default function GeneralDashboard({ localities, onSelectCampaign }) {
   // Calculate per campaign breakdowns
   const campaignBreakdowns = filteredCampaigns.map(camp => {
     const campJobs = filteredJobs.filter(j => j.campanaId === camp.id);
+    // Sort jobs exactly like subscribeTrabajos does, so iteration order is identical to Dashboard.jsx
+    campJobs.sort((a, b) => {
+      const codeA = (a.refCode || '').replace(/[0-9]/g, '');
+      const codeB = (b.refCode || '').replace(/[0-9]/g, '');
+      if (codeA !== codeB) {
+        return codeA.localeCompare(codeB);
+      }
+      return (a.sequence || 0) - (b.sequence || 0);
+    });
     const campLensStats = {};
     const campCalibrationStats = {};
 
