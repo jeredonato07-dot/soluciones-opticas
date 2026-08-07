@@ -282,6 +282,12 @@ strong {
 }
 
 /* Grid Layouts */
+.grid-5 {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+
 .grid-4 {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -714,12 +720,14 @@ strong {
 .bg-warning-soft { background-color: var(--color-warning-soft); }
 .bg-danger-soft { background-color: var(--color-danger-soft); }
 .bg-info-soft { background-color: var(--color-info-soft); }
+.bg-purple-soft { background-color: rgba(139, 92, 246, 0.15); }
 
 .text-primary { color: var(--color-primary); }
 .text-success { color: var(--color-success); }
 .text-warning { color: var(--color-warning); }
 .text-danger { color: var(--color-danger); }
 .text-info { color: var(--color-info); }
+.text-purple { color: #8b5cf6; }
 
 .stat-info {
   display: flex;

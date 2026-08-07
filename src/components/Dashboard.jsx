@@ -170,12 +170,21 @@ export default function Dashboard({ campaign, jobs, localities }) {
     }
   });
 
+  const totalLensPairs = (lensStats['Stock']?.count || 0) + (lensStats['Laboratorio']?.count || 0);
+  const totalLensUnits = totalLensPairs * 2;
+  const totalCalibrationPairs = Object.values(calibrationStats).reduce((acc, curr) => acc + curr.count, 0);
+
   const formatMoney = (val) => {
     return new Intl.NumberFormat('es-AR', {
       style: 'currency',
       currency: 'ARS',
       minimumFractionDigits: 0
     }).format(val);
+  };
+
+  const formatPairs = (val) => {
+    if (val === undefined || val === null) return '0';
+    return Number.isInteger(val) ? val.toString() : val.toFixed(1);
   };
 
   return (
@@ -189,7 +198,7 @@ export default function Dashboard({ campaign, jobs, localities }) {
       </div>
 
       {/* Stats Cards Grid */}
-      <div className="grid-4 mb-4">
+      <div className="grid-5 mb-4">
         <div className="stat-card glass-card">
           <div className="stat-icon bg-primary-soft">
             <DollarSign size={24} className="text-primary" />
@@ -207,6 +216,16 @@ export default function Dashboard({ campaign, jobs, localities }) {
           <div className="stat-info">
             <span className="stat-label">Trabajos Totales</span>
             <h3 className="stat-value">{totalJobs}</h3>
+          </div>
+        </div>
+
+        <div className="stat-card glass-card">
+          <div className="stat-icon bg-purple-soft">
+            <Eye size={24} className="text-purple" />
+          </div>
+          <div className="stat-info">
+            <span className="stat-label">Cristales Consumidos</span>
+            <h3 className="stat-value">{formatPairs(totalLensUnits)} <span className="font-xs text-muted font-normal">({formatPairs(totalLensPairs)} pares)</span></h3>
           </div>
         </div>
 
@@ -314,37 +333,15 @@ export default function Dashboard({ campaign, jobs, localities }) {
         {/* Totals & Billing breakdown */}
         <div className="glass-card p-4 flex-column gap-4">
           <div>
-            <h3 className="m-0 mb-3 flex-align-center gap-2">
-              <Eye size={20} className="text-primary" />
-              Resumen de Cristales (General)
-            </h3>
-            <div className="table-xs">
-              <div className="table-xs-row header">
-                <div>Tipo</div>
-                <div className="text-right">Pares</div>
-                <div className="text-right">Total Est.</div>
-              </div>
-              <div className="table-xs-row">
-                <div>Cristales Stock</div>
-                <div className="text-right font-medium">{lensStats['Stock'].count.toFixed(1)}</div>
-                <div className="text-right font-medium">{formatMoney(lensStats['Stock'].billing)}</div>
-              </div>
-              <div className="table-xs-row">
-                <div>Cristales Lab</div>
-                <div className="text-right font-medium">{lensStats['Laboratorio'].count.toFixed(1)}</div>
-                <div className="text-right font-medium">{formatMoney(lensStats['Laboratorio'].billing)}</div>
-              </div>
+            <div className="flex-between align-center mb-3">
+              <h3 className="m-0 flex-align-center gap-2">
+                <Layers size={20} className="text-primary" />
+                Consumo de Cristales Detallado
+              </h3>
+              <span className="badge-small bg-primary-soft text-primary font-mono font-medium">
+                Total: {formatPairs(totalLensPairs)} pares ({formatPairs(totalLensUnits)} u.)
+              </span>
             </div>
-            <span className="text-muted font-xs mt-2 block">* Cantidad expresada en pares equivalentes (1 cristal = 0.5 pares).</span>
-          </div>
-
-          <div className="divider"></div>
-
-          <div>
-            <h3 className="m-0 mb-3 flex-align-center gap-2">
-              <Layers size={20} className="text-primary" />
-              Consumo de Cristales Detallado
-            </h3>
             <div className="table-xs">
               <div className="table-xs-row cols-4 header">
                 <div>Producto</div>
@@ -357,13 +354,20 @@ export default function Dashboard({ campaign, jobs, localities }) {
               ) : (
                 Object.entries(detailedLensStats)
                   .sort((a, b) => b[1].count - a[1].count)
-                  .map(([name, stats]) => {
+                  .map(([name, stats], index) => {
                     const unitPrice = stats.unitPrice || (stats.count > 0 ? stats.billing / stats.count : 0);
                     return (
                       <div key={name} className="table-xs-row cols-4">
-                        <div className="font-semibold">{name}</div>
+                        <div className="font-semibold flex-align-center gap-1">
+                          {name}
+                          {index === 0 && (
+                            <span className="badge-small bg-success-soft text-success font-xs ml-1" title="Producto más consumido">
+                              #1 Más Usado
+                            </span>
+                          )}
+                        </div>
                         <div className="text-right font-medium text-secondary">{formatMoney(unitPrice)}</div>
-                        <div className="text-right font-medium">{stats.count.toFixed(1)}</div>
+                        <div className="text-right font-medium">{formatPairs(stats.count)}</div>
                         <div className="text-right font-medium">{formatMoney(stats.billing)}</div>
                       </div>
                     );
@@ -375,10 +379,15 @@ export default function Dashboard({ campaign, jobs, localities }) {
           <div className="divider"></div>
 
           <div>
-            <h3 className="m-0 mb-3 flex-align-center gap-2">
-              <TrendingUp size={20} className="text-primary" />
-              Detalle de Calibrados
-            </h3>
+            <div className="flex-between align-center mb-3">
+              <h3 className="m-0 flex-align-center gap-2">
+                <TrendingUp size={20} className="text-primary" />
+                Detalle de Calibrados
+              </h3>
+              <span className="badge-small bg-info-soft text-info font-mono font-medium">
+                Total: {formatPairs(totalCalibrationPairs)} pares
+              </span>
+            </div>
              <div className="table-xs">
                <div className="table-xs-row cols-4 header">
                  <div>Calibrado</div>
@@ -394,7 +403,7 @@ export default function Dashboard({ campaign, jobs, localities }) {
                      <div key={name} className="table-xs-row cols-4">
                        <div className="font-semibold">{name}</div>
                        <div className="text-right font-medium text-secondary">{formatMoney(unitPrice)}</div>
-                       <div className="text-right font-medium">{stats.count.toFixed(1)}</div>
+                       <div className="text-right font-medium">{formatPairs(stats.count)}</div>
                        <div className="text-right font-medium">{formatMoney(stats.billing)}</div>
                      </div>
                    );
