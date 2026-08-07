@@ -186,6 +186,10 @@ export default function Dashboard({ campaign, jobs, localities }) {
   const totalBilling = totalLensBilling + totalCalibrationBilling;
   const paseDeCristalesCount = Math.max(0, totalCalibrationPairs - totalLensPairs);
 
+  if (typeof window !== 'undefined') {
+    window.dashStats = { detailedLensStats, totalLensBilling, totalCalibrationBilling, totalBilling };
+  }
+
   const formatMoney = (val) => {
     return new Intl.NumberFormat('es-AR', {
       style: 'currency',

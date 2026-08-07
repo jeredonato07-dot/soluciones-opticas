@@ -212,6 +212,10 @@ export default function GeneralDashboard({ localities, onSelectCampaign }) {
   const totalGlobalCalibBilling = campaignBreakdowns.reduce((acc, curr) => acc + curr.calibBilling, 0);
   const totalGlobalBilling = totalGlobalLensBilling + totalGlobalCalibBilling;
 
+  if (typeof window !== 'undefined') {
+    window.genStats = { detailedLensStats, totalGlobalLensBilling, totalGlobalCalibBilling, totalGlobalBilling, campaignBreakdowns };
+  }
+
   return (
     <div className="dashboard-container">
       {/* Header with Filter Toggle */}
