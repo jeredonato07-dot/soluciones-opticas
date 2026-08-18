@@ -205,11 +205,46 @@ export default function Dashboard({ campaign, jobs, localities }) {
 
   return (
     <div className="dashboard-container">
-      <div className="dashboard-header mb-4">
-        <div>
-          <span className="badge badge-success mb-2">Campaña Activa</span>
-          <h2 className="m-0">{campaign.name}</h2>
-          <p className="text-secondary m-0">Iniciada el {new Date(campaign.createdAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+      {/* Large Prominent Campaign Header Banner */}
+      <div 
+        className={`dashboard-header mb-4 p-4 rounded-lg glass-card border ${
+          campaign.status === 'cerrada' ? 'border-warning-soft' : 'border-success-soft'
+        }`}
+        style={{
+          background: campaign.status === 'cerrada'
+            ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(22, 28, 45, 0.95) 100%)'
+            : 'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(22, 28, 45, 0.95) 100%)'
+        }}
+      >
+        <div className="flex-between align-center flex-wrap gap-3">
+          <div>
+            <div className="flex-align-center gap-2 mb-2 flex-wrap">
+              {campaign.status === 'cerrada' ? (
+                <span className="badge badge-warning font-sm py-1 px-3 flex-align-center gap-1 shadow-sm font-bold">
+                  🔒 CAMPAÑA CERRADA • HISTORIAL / SOLO CONSULTA
+                </span>
+              ) : (
+                <span className="badge badge-success font-sm py-1 px-3 flex-align-center gap-1 shadow-sm font-bold">
+                  🟢 CAMPAÑA ACTIVA • EN CURSO
+                </span>
+              )}
+              <span className="text-secondary font-xs">
+                Iniciada el {new Date(campaign.createdAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}
+              </span>
+            </div>
+            <h1 className="m-0 text-white font-extrabold" style={{ fontSize: '1.85rem', letterSpacing: '-0.02em' }}>
+              {campaign.name}
+            </h1>
+            {campaign.status === 'cerrada' ? (
+              <p className="text-warning font-sm m-0 mt-2 flex-align-center gap-1">
+                ⚠️ Estás visualizando los registros y balances históricos de una <strong>campaña cerrada</strong>. Todos los datos mostrados son históricos y de consulta.
+              </p>
+            ) : (
+              <p className="text-secondary font-sm m-0 mt-1">
+                Campaña de trabajo activa. Los nuevos trabajos ingresados se asignarán a esta campaña.
+              </p>
+            )}
+          </div>
         </div>
       </div>
 

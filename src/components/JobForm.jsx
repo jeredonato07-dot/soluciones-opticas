@@ -449,6 +449,44 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
 
   return (
     <div className="glass-card p-4 max-width-950 mx-auto">
+      {/* Campaign Context Indicator */}
+      {campaign && (
+        <div 
+          className={`p-3 mb-4 rounded-lg flex-between align-center flex-wrap gap-2 border ${
+            campaign.status === 'cerrada' 
+              ? 'border-warning' 
+              : 'border-success-soft'
+          }`}
+          style={{
+            background: campaign.status === 'cerrada'
+              ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(22, 28, 45, 0.95) 100%)'
+              : 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(22, 28, 45, 0.95) 100%)'
+          }}
+        >
+          <div className="flex-align-center gap-2">
+            <span className="font-lg">
+              {campaign.status === 'cerrada' ? '⚠️' : '🎯'}
+            </span>
+            <div>
+              <div className="flex-align-center gap-2 flex-wrap">
+                <span className="text-secondary font-xs font-semibold">DESTINO DEL TRABAJO:</span>
+                <span className={`badge-small ${campaign.status === 'cerrada' ? 'bg-warning text-dark font-bold' : 'bg-success text-white font-bold'}`}>
+                  {campaign.status === 'cerrada' ? '🔒 CAMPAÑA CERRADA' : '🟢 CAMPAÑA ACTIVA'}
+                </span>
+              </div>
+              <strong className="text-white font-md block mt-1">
+                {campaign.name}
+              </strong>
+            </div>
+          </div>
+          {campaign.status === 'cerrada' && (
+            <div className="bg-dark-soft p-2 rounded border border-warning-soft text-warning font-xs" style={{ maxWidth: '380px' }}>
+              <strong>Atención:</strong> Estás por registrar un trabajo en una campaña que ya fue <u>cerrada</u>. Si este trabajo corresponde a una nueva campaña, crea o selecciona la campaña activa en <strong>Configuración</strong>.
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="card-header border-bottom pb-3 mb-4">
         <h3 className="m-0 flex-align-center gap-2">
           {editingJob ? (

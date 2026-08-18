@@ -182,6 +182,35 @@ export default function JobList({ campaign, jobs, localities, onEditJob, onJobsU
 
   return (
     <div className="flex-column gap-4">
+      {/* Campaign Context Banner */}
+      <div 
+        className={`p-3 rounded-lg flex-between align-center flex-wrap gap-2 border ${
+          campaign.status === 'cerrada' 
+            ? 'border-warning-soft' 
+            : 'border-success-soft'
+        }`}
+        style={{
+          background: campaign.status === 'cerrada'
+            ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(22, 28, 45, 0.95) 100%)'
+            : 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(22, 28, 45, 0.95) 100%)'
+        }}
+      >
+        <div className="flex-align-center gap-2">
+          <span className="font-md">
+            {campaign.status === 'cerrada' ? '🔒' : '📋'}
+          </span>
+          <span className="text-white font-semibold">
+            Planilla de Trabajos: {campaign.name}
+          </span>
+          <span className={`badge-small ${campaign.status === 'cerrada' ? 'bg-warning text-dark font-bold' : 'bg-success text-white font-bold'}`}>
+            {campaign.status === 'cerrada' ? 'Campaña Cerrada (Historial)' : 'Campaña Activa'}
+          </span>
+        </div>
+        <span className="text-secondary font-xs font-mono">
+          Total: <strong>{jobs.length}</strong> trabajos registrados en esta campaña
+        </span>
+      </div>
+
       {/* Filters and View Toggles */}
       <div className="glass-card p-3 flex-between flex-wrap gap-3">
         <div className="flex-align-center gap-2">

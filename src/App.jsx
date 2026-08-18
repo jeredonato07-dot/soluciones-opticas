@@ -163,9 +163,17 @@ export default function App() {
         <header className="app-main-header">
           <div className="header-campaign-info">
             {activeCampaign ? (
-              <div className="active-camp-badge">
-                <span className="dot bg-success animate-pulse"></span>
-                <span>Campaña: <strong>{activeCampaign.name}</strong></span>
+              <div className={`active-camp-badge ${activeCampaign.status === 'cerrada' ? 'warning border border-warning-soft' : ''}`} style={activeCampaign.status === 'cerrada' ? { backgroundColor: 'rgba(245, 158, 11, 0.15)', borderColor: 'rgba(245, 158, 11, 0.3)' } : {}}>
+                <span className={`dot ${activeCampaign.status === 'cerrada' ? 'bg-warning' : 'bg-success animate-pulse'}`}></span>
+                <span className="flex-align-center gap-1">
+                  <span>{activeCampaign.status === 'cerrada' ? '🔒 Campaña Cerrada:' : '🟢 Campaña Activa:'}</span>
+                  <strong>{activeCampaign.name}</strong>
+                  {activeCampaign.status === 'cerrada' && (
+                    <span className="badge-small bg-warning text-dark font-xs font-bold ml-1 px-1 rounded">
+                      HISTÓRICO
+                    </span>
+                  )}
+                </span>
               </div>
             ) : (
               <div className="active-camp-badge warning">
