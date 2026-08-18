@@ -22,13 +22,12 @@ import {
 import { getPriceList, getCanonicalLens } from './PriceList';
 import { subscribeCampanas, subscribeAllJobs, subscribeGastos, subscribeAllGastos, saveGasto, deleteGasto } from '../services/dataService';
 
-// Categorías de gastos predeterminadas
+// Categorías de gastos solicitadas
 const GASTO_CATEGORIAS = [
-  { id: 'logistica', label: 'Logística y Fletes', icon: Truck, desc: 'Comisionistas, cadetes, envíos, nafta', color: '#3b82f6' },
-  { id: 'insumos', label: 'Insumos y Embalaje', icon: Package, desc: 'Cajas, cintas, sobres, franelas, estuches', color: '#8b5cf6' },
-  { id: 'mermas', label: 'Cristales Rotos / Pérdidas', icon: Eye, desc: 'Roturas de taller, mermas, reposiciones', color: '#ef4444' },
-  { id: 'operativos', label: 'Operativos y Viáticos', icon: CreditCard, desc: 'Estacionamiento, peajes, comidas de viaje', color: '#f59e0b' },
-  { id: 'varios', label: 'Varios / Otros', icon: Briefcase, desc: 'Gastos administrativos y varios', color: '#10b981' }
+  { id: 'cristaleria', label: 'Cristalería', icon: Eye, desc: 'Costos de cristales (Org Blue, Foto, Bifocales, Multifocales), calibrados, etc.', color: '#06b6d4' },
+  { id: 'logistica', label: 'Logística', icon: Truck, desc: 'Comisionistas, cadetes, envíos, fletes, nafta', color: '#3b82f6' },
+  { id: 'insumos', label: 'Insumos', icon: Package, desc: 'Cajas, cintas, sobres, franelas, estuches', color: '#8b5cf6' },
+  { id: 'varios', label: 'Varios', icon: Briefcase, desc: 'Estacionamiento, viáticos y gastos varios', color: '#10b981' }
 ];
 
 const SOCIOS = [
@@ -62,7 +61,7 @@ export default function FinanceModule({ activeCampaign, onSelectCampaign }) {
   
   // Form State
   const [monto, setMonto] = useState('');
-  const [categoria, setCategoria] = useState('logistica');
+  const [categoria, setCategoria] = useState('cristaleria');
   const [pagadoPor, setPagadoPor] = useState('Jere');
   const [observacion, setObservacion] = useState('');
   const [fecha, setFecha] = useState(() => new Date().toISOString().split('T')[0]);
@@ -584,7 +583,7 @@ export default function FinanceModule({ activeCampaign, onSelectCampaign }) {
                   <input 
                     type="text"
                     className="form-control mt-1"
-                    placeholder="Ej: Comisionista Puerto Madryn, Cajas y Cintas, Estacionamiento..."
+                    placeholder="Ej: Bifocales Foto Gris, Org Blue c/ Ar, Calibrados Lab, Comisionista Madryn, Cajas..."
                     value={observacion}
                     onChange={(e) => setObservacion(e.target.value)}
                   />
