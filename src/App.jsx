@@ -7,10 +7,12 @@ import {
   CloudLightning,
   AlertTriangle,
   BookOpen,
-  BarChart3
+  BarChart3,
+  Wallet
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import GeneralDashboard from './components/GeneralDashboard';
+import FinanceModule from './components/FinanceModule';
 import JobForm from './components/JobForm';
 import JobList from './components/JobList';
 import Settings from './components/Settings';
@@ -19,7 +21,7 @@ import { getLocalidades, subscribeCampanas, subscribeTrabajos } from './services
 import { isFirebaseConfigured } from './firebase';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'general', 'entry', 'list', 'pricelist', 'settings'
+  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'general', 'finances', 'entry', 'list', 'pricelist', 'settings'
   const [editingJob, setEditingJob] = useState(null);
   const [localities, setLocalities] = useState([]);
   const [activeCampaign, setActiveCampaign] = useState(null);
@@ -110,6 +112,14 @@ export default function App() {
           >
             <BarChart3 size={20} />
             <span>Control General</span>
+          </button>
+
+          <button 
+            className={`nav-item ${activeTab === 'finances' ? 'active' : ''}`}
+            onClick={() => setActiveTab('finances')}
+          >
+            <Wallet size={20} />
+            <span>Finanzas y Gastos</span>
           </button>
           
           <button 
@@ -202,6 +212,15 @@ export default function App() {
               onSelectCampaign={(camp) => {
                 handleActiveCampaignChange(camp);
                 setActiveTab('dashboard');
+              }}
+            />
+          )}
+
+          {activeTab === 'finances' && (
+            <FinanceModule 
+              activeCampaign={activeCampaign}
+              onSelectCampaign={(camp) => {
+                handleActiveCampaignChange(camp);
               }}
             />
           )}

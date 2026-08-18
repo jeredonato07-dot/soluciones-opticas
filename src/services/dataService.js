@@ -31,13 +31,16 @@ const DEFAULT_LOCALITIES = [
 const KEYS = {
   LOCALITIES: 'optica_localidades',
   CAMPAIGNS: 'optica_campanas',
-  JOBS: 'optica_trabajos'
+  JOBS: 'optica_trabajos',
+  GASTOS: 'optica_gastos'
 };
 
 // In-memory listeners for LocalStorage fallback
 const listeners = {
   campaigns: [],
-  jobs: {} // key is campanaId
+  jobs: {}, // key is campanaId
+  gastos: {}, // key is campanaId
+  allGastos: []
 };
 
 // --- Local Storage Helpers ---
@@ -70,6 +73,18 @@ const notifyJobListeners = (campanaId) => {
   });
   if (listeners.jobs[campanaId]) {
     listeners.jobs[campanaId].forEach(cb => cb(filtered));
+  }
+};
+
+const notifyGastoListeners = (campanaId) => {
+  const allGastos = getLocalData(KEYS.GASTOS, []);
+  const filtered = campanaId ? allGastos.filter(g => g.campanaId === campanaId) : allGastos;
+  filtered.sort((a, b) => new Date(b.fecha || b.createdAt) - new Date(a.fecha || a.createdAt));
+  if (campanaId && listeners.gastos[campanaId]) {
+    listeners.gastos[campanaId].forEach(cb => cb(filtered));
+  }
+  if (listeners.allGastos) {
+    listeners.allGastos.forEach(cb => cb(allGastos));
   }
 };
 
@@ -298,6 +313,120 @@ export const subscribeAllJobs = (onData) => {
   // Local Storage Fallback
   onData(getLocalData(KEYS.JOBS));
   return () => {};
+};
+
+// --- GASTOS (Subscription & CRUD) ---
+export const subscribeGastos = (campanaId, onData) => {
+  if (!campanaId) return () => {};
+
+  const db = getFirebaseDb();
+  if (db) {
+    const q = query(
+      collection(db, 'gastos'),
+      where('campanaId', '==', campanaId)
+    );
+    return onSnapshot(q, (snapshot) => {
+      const list = [];
+      snapshot.forEach(doc => {
+        list.push({ id: doc.id, ...doc.data() });
+      });
+      list.sort((a, b) => new Date(b.fecha || b.createdAt) - new Date(a.fecha || a.createdAt));
+      onData(list);
+    }, (error) => {
+      console.error("Firebase subscribeGastos error:", error);
+      notifyGastoListeners(campanaId);
+    });
+  }
+
+  // Local Storage Fallback
+  if (!listeners.gastos[campanaId]) {
+    listeners.gastos[campanaId] = [];
+  }
+  listeners.gastos[campanaId].push(onData);
+  notifyGastoListeners(campanaId);
+
+  return () => {
+    if (listeners.gastos[campanaId]) {
+      listeners.gastos[campanaId] = listeners.gastos[campanaId].filter(cb => cb !== onData);
+    }
+  };
+};
+
+export const subscribeAllGastos = (onData) => {
+  const db = getFirebaseDb();
+  if (db) {
+    const q = query(collection(db, 'gastos'));
+    return onSnapshot(q, (snapshot) => {
+      const list = [];
+      snapshot.forEach(doc => {
+        list.push({ id: doc.id, ...doc.data() });
+      });
+      list.sort((a, b) => new Date(b.fecha || b.createdAt) - new Date(a.fecha || a.createdAt));
+      onData(list);
+    }, (error) => {
+      console.error("Firebase subscribeAllGastos error:", error);
+      onData(getLocalData(KEYS.GASTOS, []));
+    });
+  }
+
+  // Local Storage Fallback
+  if (!listeners.allGastos) listeners.allGastos = [];
+  listeners.allGastos.push(onData);
+  onData(getLocalData(KEYS.GASTOS, []));
+  return () => {
+    listeners.allGastos = listeners.allGastos.filter(cb => cb !== onData);
+  };
+};
+
+export const saveGasto = async (gasto) => {
+  const db = getFirebaseDb();
+  const gastoData = {
+    ...gasto,
+    monto: Number(gasto.monto) || 0,
+    fecha: gasto.fecha || new Date().toISOString(),
+    createdAt: gasto.createdAt || new Date().toISOString()
+  };
+
+  if (db) {
+    if (gastoData.id) {
+      const { id, ...dataToSave } = gastoData;
+      const ref = doc(db, 'gastos', id);
+      await updateDoc(ref, dataToSave);
+      return id;
+    } else {
+      const ref = await addDoc(collection(db, 'gastos'), gastoData);
+      return ref.id;
+    }
+  }
+
+  // Local Storage
+  const allGastos = getLocalData(KEYS.GASTOS, []);
+  if (gastoData.id) {
+    const idx = allGastos.findIndex(g => g.id === gastoData.id);
+    if (idx !== -1) {
+      allGastos[idx] = gastoData;
+    }
+  } else {
+    gastoData.id = 'gasto_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+    allGastos.push(gastoData);
+  }
+  setLocalData(KEYS.GASTOS, allGastos);
+  notifyGastoListeners(gastoData.campanaId);
+  return gastoData.id;
+};
+
+export const deleteGasto = async (gastoId, campanaId) => {
+  const db = getFirebaseDb();
+  if (db) {
+    await deleteDoc(doc(db, 'gastos', gastoId));
+    return;
+  }
+
+  // Local Storage
+  const allGastos = getLocalData(KEYS.GASTOS, []);
+  const filtered = allGastos.filter(g => g.id !== gastoId);
+  setLocalData(KEYS.GASTOS, filtered);
+  notifyGastoListeners(campanaId);
 };
 
 // Helper to generate the next reference code for a locality in a campaign
