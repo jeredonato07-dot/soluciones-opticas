@@ -17,6 +17,15 @@ import {
   runTransaction
 } from 'firebase/firestore';
 
+const DEFAULT_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDZRm7xREvz1l7baf2SHYFrtU3IDm5kmoE",
+  authDomain: "soluciones-opticas.firebaseapp.com",
+  projectId: "soluciones-opticas",
+  storageBucket: "soluciones-opticas.firebasestorage.app",
+  messagingSenderId: "665154982665",
+  appId: "1:665154982665:web:ad1915b8336ed56d9ab9d8"
+};
+
 let firebaseApp = null;
 let db = null;
 
@@ -24,15 +33,22 @@ let db = null;
 export const getFirebaseDb = () => {
   if (db) return db;
 
+  let configToUse = DEFAULT_FIREBASE_CONFIG;
   const storedConfig = localStorage.getItem('optica_firebase_config');
-  if (!storedConfig) return null;
+  if (storedConfig) {
+    try {
+      const parsedConfig = JSON.parse(storedConfig);
+      if (parsedConfig && parsedConfig.apiKey) {
+        configToUse = parsedConfig;
+      }
+    } catch (error) {
+      console.error("Error parsing stored config:", error);
+    }
+  }
 
   try {
-    const parsedConfig = JSON.parse(storedConfig);
-    if (!parsedConfig || !parsedConfig.apiKey) return null;
-
     if (getApps().length === 0) {
-      firebaseApp = initializeApp(parsedConfig);
+      firebaseApp = initializeApp(configToUse);
     } else {
       firebaseApp = getApp();
     }
@@ -46,14 +62,7 @@ export const getFirebaseDb = () => {
 
 // Check if firebase config is present and valid
 export const isFirebaseConfigured = () => {
-  const config = localStorage.getItem('optica_firebase_config');
-  if (!config) return false;
-  try {
-    const parsed = JSON.parse(config);
-    return !!(parsed && parsed.apiKey);
-  } catch (e) {
-    return false;
-  }
+  return true;
 };
 
 // Clear firebase instance (useful when changing credentials)

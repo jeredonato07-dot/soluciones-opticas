@@ -62,22 +62,33 @@ export default function Settings({
     return () => unsub();
   }, []);
 
-  // Load existing Firebase config if present
+  // Load existing Firebase config if present (or prefill with default)
   useEffect(() => {
     const stored = localStorage.getItem('optica_firebase_config');
+    let configObj = {
+      apiKey: 'AIzaSyDZRm7xREvz1l7baf2SHYFrtU3IDm5kmoE',
+      authDomain: 'soluciones-opticas.firebaseapp.com',
+      projectId: 'soluciones-opticas',
+      storageBucket: 'soluciones-opticas.firebasestorage.app',
+      messagingSenderId: '665154982665',
+      appId: '1:665154982665:web:ad1915b8336ed56d9ab9d8'
+    };
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        setApiKey(parsed.apiKey || '');
-        setAuthDomain(parsed.authDomain || '');
-        setProjectId(parsed.projectId || '');
-        setStorageBucket(parsed.storageBucket || '');
-        setMessagingSenderId(parsed.messagingSenderId || '');
-        setAppId(parsed.appId || '');
+        if (parsed && parsed.apiKey) {
+          configObj = { ...configObj, ...parsed };
+        }
       } catch (e) {
         console.error(e);
       }
     }
+    setApiKey(configObj.apiKey || '');
+    setAuthDomain(configObj.authDomain || '');
+    setProjectId(configObj.projectId || '');
+    setStorageBucket(configObj.storageBucket || '');
+    setMessagingSenderId(configObj.messagingSenderId || '');
+    setAppId(configObj.appId || '');
   }, []);
 
   // Campaign handlers
