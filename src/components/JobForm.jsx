@@ -65,7 +65,7 @@ const QUICK_LENSES_CONFIG = [
 
   // COLUMNA 1: Orgánicos Blue Cut (Azul) - LAB
   {
-    label: 'Org Blue c/ Ar',
+    label: 'Org Blue',
     badge: 'LAB',
     colorClass: 'ql-blue ql-most-used',
     match: (p) => p.category === 'Monofocal Lab' && p.rawName.includes('1.56 Orgánico Blue Light - Tallado Tradicional CNC')

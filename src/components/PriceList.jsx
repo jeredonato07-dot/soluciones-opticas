@@ -30,8 +30,8 @@ export const getShortName = (item) => {
   if (nameToTest.includes('Organico Blue Light Cut') && (nameToTest.includes('Tipo: Rango Extendido') || nameToTest.includes('Rango Ext'))) {
     return 'Org Blue c/ Ar RANGO EXT';
   }
-  if (nameToTest.includes('1.56 Orgánico Blue Light') || nameToTest.includes('Org Blue c/ Ar LAB')) {
-    return 'Org Blue c/ Ar LAB';
+  if (nameToTest.includes('1.56 Orgánico Blue Light') || nameToTest.includes('Org Blue LAB') || nameToTest.includes('Org Blue c/ Ar LAB')) {
+    return 'Org Blue LAB';
   }
   if (nameToTest.includes('Blue Fotocromático Gris') || nameToTest.includes('Blue Light Cut + Fotocromático') || nameToTest.includes('Org Foto Blue STOCK')) {
     return 'Org Foto Blue STOCK';
@@ -71,14 +71,19 @@ export const getLensStyleInfo = (lensName) => {
   const str = String(lensName).trim();
 
   // 1. Org Blue Cut (Azul) - STOCK, RANGO EXT, LAB
-  if (str.includes('Org Blue c/ Ar') || (str.includes('Blue Light Cut') && !str.includes('Bif') && !str.includes('Foto'))) {
+  if (str.includes('Org Blue') || (str.includes('Blue Light Cut') && !str.includes('Bif') && !str.includes('Foto'))) {
     let badge = 'STOCK';
-    if (str.includes('RANGO EXT') || str.includes('Rango Extendido')) badge = 'RANGO EXT';
-    else if (str.includes('LAB') || str.includes('Laboratorio') || str.includes('Tallado')) badge = 'LAB';
+    let label = 'Org Blue c/ Ar';
+    if (str.includes('RANGO EXT') || str.includes('Rango Extendido')) {
+      badge = 'RANGO EXT';
+    } else if (str.includes('LAB') || str.includes('Laboratorio') || str.includes('Tallado')) {
+      badge = 'LAB';
+      label = 'Org Blue';
+    }
     return {
       theme: 'blue',
       badge,
-      label: 'Org Blue c/ Ar'
+      label
     };
   }
 
