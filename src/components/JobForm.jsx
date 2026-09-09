@@ -60,7 +60,7 @@ const QUICK_LENSES_CONFIG = [
     label: 'Org Foto Blue',
     badge: 'LAB',
     colorClass: 'ql-amber',
-    match: (p) => p.category === 'Monofocal Lab' && p.rawName.includes('1.56 Orgánico Fotocromático Gris - Tallado Tradicional CNC')
+    match: (p) => p.category === 'Monofocal Lab' && p.rawName.includes('1.56 Orgánico Fotocromático BLUE - Tallado Tradicional CNC')
   },
 
   // COLUMNA 1: Orgánicos Blue Cut (Azul) - LAB
@@ -868,7 +868,7 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
                       >
                         <span className="quick-lbl">{configItem.label}</span>
                         <span className="quick-prc">
-                          {formatMoney((matchedProd?.price || 0) / 2)}
+                          {formatMoney(quickAccessTarget === 'both' ? (matchedProd?.price || 0) : (matchedProd?.price || 0) / 2)}
                         </span>
                         {configItem.badge && (
                           <span className="ql-badge">{configItem.badge}</span>

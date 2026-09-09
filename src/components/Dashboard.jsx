@@ -97,8 +97,9 @@ export default function Dashboard({ campaign, jobs, localities }) {
     }
 
     // Cristales (OD + OI, priced at 50% per lens)
+    const isClosed = campaign?.status === 'cerrada';
     if (job.cristalOD) {
-      const canonical = getCanonicalLens(job.cristalOD, priceList);
+      const canonical = getCanonicalLens(job.cristalOD, priceList, isClosed);
       const type = canonical.type || job.cristalOD.type || 'Stock';
       if (lensStats[type]) {
         lensStats[type].count += 0.5; // Half a pair
@@ -121,7 +122,7 @@ export default function Dashboard({ campaign, jobs, localities }) {
     }
     
     if (job.cristalOI) {
-      const canonical = getCanonicalLens(job.cristalOI, priceList);
+      const canonical = getCanonicalLens(job.cristalOI, priceList, isClosed);
       const type = canonical.type || job.cristalOI.type || 'Stock';
       if (lensStats[type]) {
         lensStats[type].count += 0.5; // Half a pair

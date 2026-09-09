@@ -137,8 +137,9 @@ export default function GeneralDashboard({ localities, onSelectCampaign }) {
       }
 
       // Cristales OD
+      const isCampClosed = camp.status === 'cerrada';
       if (job.cristalOD) {
-        const canonical = getCanonicalLens(job.cristalOD, priceList);
+        const canonical = getCanonicalLens(job.cristalOD, priceList, isCampClosed);
         const prodName = canonical.name;
         const uPrice = canonical.price || job.cristalOD.price || 0;
 
@@ -164,7 +165,7 @@ export default function GeneralDashboard({ localities, onSelectCampaign }) {
 
       // Cristales OI
       if (job.cristalOI) {
-        const canonical = getCanonicalLens(job.cristalOI, priceList);
+        const canonical = getCanonicalLens(job.cristalOI, priceList, isCampClosed);
         const prodName = canonical.name;
         const uPrice = canonical.price || job.cristalOI.price || 0;
 

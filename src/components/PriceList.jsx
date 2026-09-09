@@ -63,8 +63,16 @@ export const getShortName = (item) => {
   return cleaned;
 };
 
-export const getCanonicalLens = (cristal, priceList = []) => {
+export const getCanonicalLens = (cristal, priceList = [], isClosedCampaign = false) => {
   if (!cristal) return null;
+
+  // Si la campaña está cerrada y el trabajo ya tiene su precio histórico guardado, conservarlo intacto
+  if (isClosedCampaign && cristal.price !== undefined && cristal.price !== null) {
+    return {
+      ...cristal,
+      price: cristal.price
+    };
+  }
 
   const currentPriceList = priceList.length > 0 ? priceList : getPriceList();
 
