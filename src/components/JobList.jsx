@@ -13,7 +13,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { saveTrabajo, deleteTrabajo } from '../services/dataService';
-import { getCanonicalLens } from './PriceList';
+import { getCanonicalLens, getLensStyleInfo } from './PriceList';
 
 export default function JobList({ campaign, jobs, localities, onEditJob, onJobsUpdated }) {
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'logistics'
@@ -323,27 +323,74 @@ export default function JobList({ campaign, jobs, localities, onEditJob, onJobsU
                       <td>
                         <div className="lenses-cell">
                           {job.isPaseDeCristales ? (
-                            <span className="badge-small bg-secondary-soft text-secondary">Pase de Cristales Propios</span>
+                            <div className="lens-tag-pill tag-slate">
+                              <div className="lens-tag-header">
+                                <span className="lens-tag-title">Pase de Cristales</span>
+                                <span className="lens-tag-badge">PROPIO</span>
+                              </div>
+                              <div className="lens-tag-footer">
+                                <span className="lens-tag-scope">Sin Cargo Cristales</span>
+                              </div>
+                            </div>
                           ) : (
                             <>
                               {(() => {
-                                const od = getCanonicalLens(job.cristalOD);
-                                const oi = getCanonicalLens(job.cristalOI);
+                                const isClosed = campaign?.status === 'cerrada';
+                                const od = getCanonicalLens(job.cristalOD, [], isClosed);
+                                const oi = getCanonicalLens(job.cristalOI, [], isClosed);
+
+                                if (!od && !oi) {
+                                  return <span className="text-muted italic font-xs">Sin cristales</span>;
+                                }
+
+                                const isSameLens = od && oi && od.name === oi.name;
+
+                                if (isSameLens) {
+                                  const styleInfo = getLensStyleInfo(od.name);
+                                  const pairPrice = (od.price !== undefined && od.price !== null) ? od.price : ((job.precioTotal || 0) - (job.calibradoPrecio || 0));
+                                  return (
+                                    <div className={`lens-tag-pill tag-${styleInfo.theme}`} title={od.name}>
+                                      <div className="lens-tag-header">
+                                        <span className="lens-tag-title">{styleInfo.label}</span>
+                                        <span className="lens-tag-badge">{styleInfo.badge}</span>
+                                      </div>
+                                      <div className="lens-tag-footer">
+                                        <span className="lens-tag-scope">Par</span>
+                                        <span className="lens-tag-price">{formatMoney(pairPrice)}</span>
+                                      </div>
+                                    </div>
+                                  );
+                                }
+
                                 return (
-                                  <>
-                                    <div className="lens-detail">
-                                      <span className="eye-lbl">OD:</span> 
-                                      <span className="lens-text" title={od?.name || ''}>
-                                        {od ? `${od.name} (${formatMoney(od.price / 2)})` : <span className="text-muted">-</span>}
-                                      </span>
-                                    </div>
-                                    <div className="lens-detail">
-                                      <span className="eye-lbl">OI:</span> 
-                                      <span className="lens-text" title={oi?.name || ''}>
-                                        {oi ? `${oi.name} (${formatMoney(oi.price / 2)})` : <span className="text-muted">-</span>}
-                                      </span>
-                                    </div>
-                                  </>
+                                  <div className="lens-tags-split">
+                                    {od ? (() => {
+                                      const info = getLensStyleInfo(od.name);
+                                      return (
+                                        <div className={`lens-tag-pill tag-${info.theme} pill-mini`} title={od.name}>
+                                          <span className="eye-indicator">OD:</span>
+                                          <span className="lens-tag-title">{info.label}</span>
+                                          <span className="lens-tag-badge">{info.badge}</span>
+                                          <span className="lens-tag-price">{formatMoney(od.price / 2)}</span>
+                                        </div>
+                                      );
+                                    })() : (
+                                      <div className="lens-tag-empty">OD: <span className="text-muted">-</span></div>
+                                    )}
+                                    {oi ? (() => {
+                                      const info = getLensStyleInfo(oi.name);
+                                      return (
+                                        <div className={`lens-tag-pill tag-${info.theme} pill-mini`} title={oi.name}>
+                                          <span className="eye-indicator">OI:</span>
+                                          <span className="lens-tag-title">{info.label}</span>
+                                          <span className="lens-tag-badge">{info.badge}</span>
+                                          <span className="lens-tag-price">{formatMoney(oi.price / 2)}</span>
+                                        </div>
+                                      );
+                                    })() : (
+                                      <div className="lens-tag-empty">OI: <span className="text-muted">-</span></div>
+                                    )}
+                                  </div>
                                 );
                               })()}
                             </>

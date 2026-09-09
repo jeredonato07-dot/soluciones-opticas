@@ -66,6 +66,63 @@ export const getShortName = (item) => {
   return cleaned;
 };
 
+export const getLensStyleInfo = (lensName) => {
+  if (!lensName) return { theme: 'slate', badge: '', label: 'S/D' };
+  const str = String(lensName).trim();
+
+  // 1. Org Blue Cut (Azul) - STOCK, RANGO EXT, LAB
+  if (str.includes('Org Blue c/ Ar') || (str.includes('Blue Light Cut') && !str.includes('Bif') && !str.includes('Foto'))) {
+    let badge = 'STOCK';
+    if (str.includes('RANGO EXT') || str.includes('Rango Extendido')) badge = 'RANGO EXT';
+    else if (str.includes('LAB') || str.includes('Laboratorio') || str.includes('Tallado')) badge = 'LAB';
+    return {
+      theme: 'blue',
+      badge,
+      label: 'Org Blue c/ Ar'
+    };
+  }
+
+  // 2. Bifocales (Teal) - BLUE CUT, FOTO GRIS
+  if (str.toLowerCase().includes('bifocal') || str.toLowerCase().includes('bif.')) {
+    let badge = 'BLUE CUT';
+    if (str.toLowerCase().includes('foto') || str.toLowerCase().includes('gris')) badge = 'FOTO GRIS';
+    return {
+      theme: 'teal',
+      badge,
+      label: badge === 'FOTO GRIS' ? 'Bifocal Foto Gris' : 'Bifocal Blue Cut'
+    };
+  }
+
+  // 3. Multifocales (Púrpura) - BLUE ONE, FOTO GREY
+  if (str.toLowerCase().includes('multi') || str.toLowerCase().includes('digital')) {
+    let badge = 'BLUE ONE';
+    if (str.toLowerCase().includes('foto') || str.toLowerCase().includes('grey') || str.toLowerCase().includes('gris')) badge = 'FOTO GREY';
+    return {
+      theme: 'purple',
+      badge,
+      label: badge === 'FOTO GREY' ? 'Multi Foto Blue' : 'Multi Blue One'
+    };
+  }
+
+  // 4. Foto Blue Monofocal (Ámbar) - STOCK, LAB
+  if (str.includes('Foto Blue') || str.includes('Foto Gris') || (str.includes('Fotocromático') && !str.includes('Bif') && !str.includes('Multi'))) {
+    let badge = 'STOCK';
+    if (str.includes('LAB') || str.includes('Laboratorio') || str.includes('Tallado')) badge = 'LAB';
+    const isGris = str.includes('Gris');
+    return {
+      theme: 'amber',
+      badge,
+      label: isGris ? 'Org Foto Gris' : 'Org Foto Blue'
+    };
+  }
+
+  return {
+    theme: 'slate',
+    badge: 'CRISTAL',
+    label: str.length > 25 ? str.substring(0, 23) + '...' : str
+  };
+};
+
 export const getCanonicalLens = (cristal, priceList = [], isClosedCampaign = false) => {
   if (!cristal) return null;
 

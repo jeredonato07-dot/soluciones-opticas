@@ -937,6 +937,172 @@ strong {
   gap: 4px;
 }
 
+/* Color-coded Lens Tag Pills in Job List */
+.lens-tag-pill {
+  display: inline-flex;
+  flex-direction: column;
+  padding: 5px 9px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  font-size: 0.78rem;
+  line-height: 1.25;
+  min-width: 175px;
+  max-width: 230px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.lens-tag-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.lens-tag-title {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.76rem;
+}
+
+.lens-tag-badge {
+  font-size: 0.6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1.5px 5.5px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.lens-tag-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  opacity: 0.92;
+}
+
+.lens-tag-scope {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  opacity: 0.75;
+}
+
+.lens-tag-price {
+  font-family: monospace;
+  font-weight: 700;
+}
+
+/* Blue Cut Theme (Azul) */
+.lens-tag-pill.tag-blue {
+  background-color: rgba(59, 130, 246, 0.08);
+  border-color: rgba(59, 130, 246, 0.28);
+}
+.lens-tag-pill.tag-blue .lens-tag-title {
+  color: #93c5fd;
+}
+.lens-tag-pill.tag-blue .lens-tag-badge {
+  background-color: rgba(59, 130, 246, 0.22);
+  color: #bfdbfe;
+}
+.lens-tag-pill.tag-blue .lens-tag-price {
+  color: #60a5fa;
+}
+
+/* Bifocal Theme (Teal) */
+.lens-tag-pill.tag-teal {
+  background-color: rgba(20, 184, 166, 0.08);
+  border-color: rgba(20, 184, 166, 0.28);
+}
+.lens-tag-pill.tag-teal .lens-tag-title {
+  color: #5eead4;
+}
+.lens-tag-pill.tag-teal .lens-tag-badge {
+  background-color: rgba(20, 184, 166, 0.22);
+  color: #99f6e4;
+}
+.lens-tag-pill.tag-teal .lens-tag-price {
+  color: #2dd4bf;
+}
+
+/* Amber Theme (Foto Blue / Fotocromático Monofocal) */
+.lens-tag-pill.tag-amber {
+  background-color: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.28);
+}
+.lens-tag-pill.tag-amber .lens-tag-title {
+  color: #fde047;
+}
+.lens-tag-pill.tag-amber .lens-tag-badge {
+  background-color: rgba(245, 158, 11, 0.22);
+  color: #fef08a;
+}
+.lens-tag-pill.tag-amber .lens-tag-price {
+  color: #f59e0b;
+}
+
+/* Purple Theme (Multifocales) */
+.lens-tag-pill.tag-purple {
+  background-color: rgba(168, 85, 247, 0.08);
+  border-color: rgba(168, 85, 247, 0.28);
+}
+.lens-tag-pill.tag-purple .lens-tag-title {
+  color: #e9d5ff;
+}
+.lens-tag-pill.tag-purple .lens-tag-badge {
+  background-color: rgba(168, 85, 247, 0.22);
+  color: #f3e8ff;
+}
+.lens-tag-pill.tag-purple .lens-tag-price {
+  color: #c084fc;
+}
+
+/* Slate Theme (Pase de cristales / Otros) */
+.lens-tag-pill.tag-slate {
+  background-color: rgba(148, 163, 184, 0.08);
+  border-color: rgba(148, 163, 184, 0.25);
+}
+.lens-tag-pill.tag-slate .lens-tag-title {
+  color: #cbd5e1;
+}
+.lens-tag-pill.tag-slate .lens-tag-badge {
+  background-color: rgba(148, 163, 184, 0.2);
+  color: #e2e8f0;
+}
+
+/* Split view (OD and OI differ) */
+.lens-tags-split {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.lens-tag-pill.pill-mini {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  min-width: unset;
+  max-width: fit-content;
+  padding: 3px 7px;
+  font-size: 0.72rem;
+}
+.lens-tag-pill.pill-mini .eye-indicator {
+  font-weight: 800;
+  opacity: 0.85;
+  font-size: 0.65rem;
+  margin-right: 1px;
+}
+.lens-tag-empty {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
 .lens-detail {
   display: flex;
   gap: 8px;
