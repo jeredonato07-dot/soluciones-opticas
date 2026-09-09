@@ -36,8 +36,11 @@ export const getShortName = (item) => {
   if (nameToTest.includes('Blue Fotocromático Gris') || nameToTest.includes('Blue Light Cut + Fotocromático') || nameToTest.includes('Org Foto Blue STOCK')) {
     return 'Org Foto Blue STOCK';
   }
-  if (nameToTest.includes('1.56 Orgánico Fotocromático Gris') || nameToTest.includes('1.56 Orgánico Fotocromático BLUE') || nameToTest.includes('Org Foto Blue LAB')) {
+  if (nameToTest.includes('1.56 Orgánico Fotocromático BLUE') || nameToTest.includes('Org Foto Blue LAB')) {
     return 'Org Foto Blue LAB';
+  }
+  if (nameToTest.includes('1.56 Orgánico Fotocromático Gris') || nameToTest.includes('Org Foto Gris LAB')) {
+    return 'Org Foto Gris LAB';
   }
   if (nameToTest.includes('Bif. Flap Top Orgánico Blue Light Cut') || nameToTest.includes('Bifocal Blue Cut')) {
     return 'Bifocal Blue Cut';
