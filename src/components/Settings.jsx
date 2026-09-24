@@ -10,13 +10,16 @@ import {
   Info,
   XCircle,
   HelpCircle,
-  Download
+  Download,
+  Lock
 } from 'lucide-react';
 import { 
   saveCampana, 
+  deleteCampana,
   saveLocalidad, 
   deleteLocalidad,
   subscribeCampanas, 
+  subscribeAllJobs,
   syncLocalToFirebase,
   downloadCloudToLocal,
   resetAllData
@@ -34,6 +37,7 @@ export default function Settings({
   
   // Campaigns state
   const [campaigns, setCampaigns] = useState([]);
+  const [allJobs, setAllJobs] = useState([]);
   const [newCampaignName, setNewCampaignName] = useState('');
   
   // Localities state
@@ -54,12 +58,18 @@ export default function Settings({
   const [syncStatusMsg, setSyncStatusMsg] = useState('');
   const [showInstructions, setShowInstructions] = useState(false);
 
-  // Load campaigns subscription
+  // Load campaigns and jobs subscription
   useEffect(() => {
-    const unsub = subscribeCampanas((list) => {
+    const unsubCamp = subscribeCampanas((list) => {
       setCampaigns(list);
     });
-    return () => unsub();
+    const unsubJobs = subscribeAllJobs((list) => {
+      setAllJobs(list);
+    });
+    return () => {
+      unsubCamp();
+      unsubJobs();
+    };
   }, []);
 
   // Load existing Firebase config if present (or prefill with default)
@@ -133,6 +143,27 @@ export default function Settings({
       }
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const handleDeleteCampaign = async (camp) => {
+    const jobCount = allJobs.filter(j => j.campanaId === camp.id).length;
+    if (jobCount > 0) {
+      alert(`⚠️ Campaña Protegida: La campaña "${camp.name}" contiene ${jobCount} trabajos cargados y no se puede eliminar.`);
+      return;
+    }
+
+    if (window.confirm(`¿Estás seguro de que deseas eliminar la campaña vacía "${camp.name}"?\n\nEsta campaña tiene 0 trabajos registrados. Esta acción no se puede deshacer.`)) {
+      try {
+        await deleteCampana(camp.id);
+        if (activeCampaign && activeCampaign.id === camp.id) {
+          setActiveCampaign(null);
+          localStorage.removeItem('optica_active_campaign_id');
+        }
+      } catch (err) {
+        console.error("Error al eliminar campaña:", err);
+        alert(err.message || "Error al eliminar la campaña.");
+      }
     }
   };
 
@@ -386,48 +417,84 @@ export default function Settings({
                 {campaigns.length === 0 ? (
                   <p className="text-secondary p-3 text-center bg-dark-soft rounded">No hay campañas creadas.</p>
                 ) : (
-                  campaigns.map(camp => (
-                    <div 
-                      key={camp.id} 
-                      className={`campaign-item-row ${activeCampaign?.id === camp.id ? 'active' : ''}`}
-                    >
-                      <div className="camp-info">
-                        <strong>{camp.name}</strong>
-                        <span className="text-secondary small">
-                          Creada el {new Date(camp.createdAt).toLocaleDateString('es-AR')}
-                        </span>
-                      </div>
-                      
-                      <div className="camp-actions ml-auto">
-                        <span className={`badge ${camp.status === 'activa' ? 'badge-success-soft text-success border-success' : 'badge-secondary-soft text-secondary border-secondary'}`}>
-                          {camp.status === 'activa' ? 'Activa' : 'Cerrada'}
-                        </span>
+                  campaigns.map(camp => {
+                    const jobCount = allJobs.filter(j => j.campanaId === camp.id).length;
+                    const hasJobs = jobCount > 0;
+
+                    return (
+                      <div 
+                        key={camp.id} 
+                        className={`campaign-item-row ${activeCampaign?.id === camp.id ? 'active' : ''}`}
+                      >
+                        <div className="camp-info">
+                          <div className="flex-align-center gap-2">
+                            <strong>{camp.name}</strong>
+                            {hasJobs ? (
+                              <span className="badge-small bg-primary-soft text-primary font-xs" title={`${jobCount} trabajos registrados`}>
+                                {jobCount} trab.
+                              </span>
+                            ) : (
+                              <span className="badge-small bg-secondary-soft text-muted font-xs" title="Campaña sin trabajos cargados">
+                                0 trab.
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-secondary small">
+                            Creada el {new Date(camp.createdAt).toLocaleDateString('es-AR')}
+                          </span>
+                        </div>
                         
-                        <button
-                          type="button"
-                          className="btn btn-xs btn-outline"
-                          onClick={() => handleToggleCampaignStatus(camp)}
-                          title={camp.status === 'activa' ? 'Cerrar campaña' : 'Abrir campaña'}
-                        >
-                          {camp.status === 'activa' ? 'Cerrar' : 'Reabrir'}
-                        </button>
-                        
-                        {activeCampaign?.id !== camp.id ? (
+                        <div className="camp-actions ml-auto flex-align-center gap-2">
+                          <span className={`badge ${camp.status === 'activa' ? 'badge-success-soft text-success border-success' : 'badge-secondary-soft text-secondary border-secondary'}`}>
+                            {camp.status === 'activa' ? 'Activa' : 'Cerrada'}
+                          </span>
+                          
                           <button
                             type="button"
-                            className="btn btn-xs btn-primary"
-                            onClick={() => handleSelectCampaign(camp)}
+                            className="btn btn-xs btn-outline"
+                            onClick={() => handleToggleCampaignStatus(camp)}
+                            title={camp.status === 'activa' ? 'Cerrar campaña' : 'Abrir campaña'}
                           >
-                            Activar
+                            {camp.status === 'activa' ? 'Cerrar' : 'Reabrir'}
                           </button>
-                        ) : (
-                          <span className="badge badge-primary flex-align-center gap-1 font-semibold">
-                            <Check size={14} /> Seleccionada
-                          </span>
-                        )}
+                          
+                          {activeCampaign?.id !== camp.id ? (
+                            <button
+                              type="button"
+                              className="btn btn-xs btn-primary"
+                              onClick={() => handleSelectCampaign(camp)}
+                            >
+                              Activar
+                            </button>
+                          ) : (
+                            <span className="badge badge-primary flex-align-center gap-1 font-semibold">
+                              <Check size={14} /> Seleccionada
+                            </span>
+                          )}
+
+                          {/* Delete or Locked Badge */}
+                          {hasJobs ? (
+                            <span 
+                              className="badge-small bg-dark-soft text-muted flex-align-center gap-1 px-2 py-1 rounded" 
+                              title={`Campaña protegida: contiene ${jobCount} trabajos cargados y no se puede eliminar.`}
+                              style={{ cursor: 'not-allowed', opacity: 0.7 }}
+                            >
+                              <Lock size={12} className="text-secondary" /> Protegida
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              className="btn btn-xs btn-danger flex-align-center gap-1"
+                              onClick={() => handleDeleteCampaign(camp)}
+                              title="Eliminar campaña vacía (0 trabajos)"
+                            >
+                              <Trash2 size={13} /> Eliminar
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>

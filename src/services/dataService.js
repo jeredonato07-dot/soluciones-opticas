@@ -245,6 +245,34 @@ export const saveCampana = async (campana) => {
   return campana.id;
 };
 
+export const deleteCampana = async (campanaId) => {
+  if (!campanaId) return;
+  const db = getFirebaseDb();
+
+  if (db) {
+    // Verificación estricta de seguridad: confirmar que la campaña no tenga trabajos
+    const q = query(collection(db, 'trabajos'), where('campanaId', '==', campanaId));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      throw new Error(`Acción bloqueada: La campaña contiene ${snap.size} trabajos y no puede eliminarse para proteger tus datos.`);
+    }
+    await deleteDoc(doc(db, 'campanas', campanaId));
+    return;
+  }
+
+  // Local Storage
+  const allJobs = getLocalData(KEYS.JOBS, []);
+  const campJobs = allJobs.filter(j => j.campanaId === campanaId);
+  if (campJobs.length > 0) {
+    throw new Error(`Acción bloqueada: La campaña contiene ${campJobs.length} trabajos y no puede eliminarse para proteger tus datos.`);
+  }
+
+  const list = getLocalData(KEYS.CAMPAIGNS, []);
+  const filtered = list.filter(c => c.id !== campanaId);
+  setLocalData(KEYS.CAMPAIGNS, filtered);
+  notifyCampaignListeners();
+};
+
 
 // --- TRABAJOS (Subscription Based) ---
 export const subscribeTrabajos = (campanaId, onData) => {
