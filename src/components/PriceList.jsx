@@ -30,6 +30,12 @@ export const getShortName = (item) => {
   if (nameToTest.includes('Organico Blue Light Cut') && (nameToTest.includes('Tipo: Rango Extendido') || nameToTest.includes('Rango Ext'))) {
     return 'Org Blue c/ Ar RANGO EXT';
   }
+  if ((nameToTest.includes('1.56 Orgánico Blue Light') || nameToTest.includes('Org Blue LAB')) && (nameToTest.includes('Digital') || nameToTest.includes('DIGITAL'))) {
+    return 'Org Blue LAB Digital';
+  }
+  if (nameToTest.includes('Org Blue LAB Digital')) {
+    return 'Org Blue LAB Digital';
+  }
   if (nameToTest.includes('1.56 Orgánico Blue Light') || nameToTest.includes('Org Blue LAB') || nameToTest.includes('Org Blue c/ Ar LAB')) {
     return 'Org Blue LAB';
   }
@@ -70,12 +76,15 @@ export const getLensStyleInfo = (lensName) => {
   if (!lensName) return { theme: 'slate', badge: '', label: 'S/D' };
   const str = String(lensName).trim();
 
-  // 1. Org Blue Cut (Azul) - STOCK, RANGO EXT, LAB
+  // 1. Org Blue Cut (Azul) - STOCK, RANGO EXT, LAB, DIGITAL
   if (str.includes('Org Blue') || (str.includes('Blue Light Cut') && !str.includes('Bif') && !str.includes('Foto'))) {
     let badge = 'STOCK';
     let label = 'Org Blue c/ Ar';
     if (str.includes('RANGO EXT') || str.includes('Rango Extendido')) {
       badge = 'RANGO EXT';
+    } else if (str.includes('Digital') || str.includes('DIGITAL')) {
+      badge = 'LAB DIGITAL';
+      label = 'Org Blue';
     } else if (str.includes('LAB') || str.includes('Laboratorio') || str.includes('Tallado')) {
       badge = 'LAB';
       label = 'Org Blue';
@@ -156,9 +165,11 @@ export const getCanonicalLens = (cristal, priceList = [], isClosedCampaign = fal
 
   // 2. Try match by name or rawName
   const cName = cristal.name || '';
+  const cFullName = cristal.fullName || '';
   const foundByName = currentPriceList.find(p => {
     const pShort = getShortName(p);
     return (
+      (cFullName && (p.name === cFullName || p.rawName === cFullName)) ||
       p.name === cName || 
       p.rawName === cName || 
       pShort === cName ||
