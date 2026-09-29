@@ -24,6 +24,15 @@ export const getShortName = (item) => {
   
   const nameToTest = item.rawName || item.name || '';
   
+  if (nameToTest.includes('Super Blue') && (nameToTest.includes('Digital') || nameToTest.includes('DIGITAL')) && !nameToTest.includes('Multifocal') && !nameToTest.includes('Ocupacional')) {
+    return 'Super Blue Tallado Digital LAB';
+  }
+  if (nameToTest.includes('Super Blue Tallado Digital LAB') || nameToTest.includes('Super Blue tallado digital LAB')) {
+    return 'Super Blue Tallado Digital LAB';
+  }
+  if (nameToTest.includes('Super Blue') && (nameToTest.includes('Tallado') || nameToTest.includes('CNC')) && !nameToTest.includes('Multifocal') && !nameToTest.includes('Ocupacional')) {
+    return 'Super Blue LAB';
+  }
   if (nameToTest.includes('Organico Blue Light Cut') && (nameToTest.includes('Tipo: Stock') || nameToTest.endsWith('Stock'))) {
     return 'Org Blue c/ Ar STOCK';
   }
@@ -76,18 +85,26 @@ export const getLensStyleInfo = (lensName) => {
   if (!lensName) return { theme: 'slate', badge: '', label: 'S/D' };
   const str = String(lensName).trim();
 
-  // 1. Org Blue Cut (Azul) - STOCK, RANGO EXT, LAB, DIGITAL
-  if (str.includes('Org Blue') || (str.includes('Blue Light Cut') && !str.includes('Bif') && !str.includes('Foto'))) {
+  // 1. Org Blue Cut & Super Blue (Azul) - STOCK, RANGO EXT, LAB, DIGITAL
+  if (str.includes('Org Blue') || str.includes('Super Blue') || (str.includes('Blue Light Cut') && !str.includes('Bif') && !str.includes('Foto') && !str.includes('Multi'))) {
     let badge = 'STOCK';
     let label = 'Org Blue c/ Ar';
+    const isSuperBlue = str.includes('Super Blue');
+
+    if (isSuperBlue) {
+      label = 'Super Blue LAB';
+      badge = 'LAB';
+    }
+
     if (str.includes('RANGO EXT') || str.includes('Rango Extendido')) {
       badge = 'RANGO EXT';
+      if (isSuperBlue) label = 'Super Blue';
     } else if (str.includes('Digital') || str.includes('DIGITAL')) {
       badge = 'LAB DIGITAL';
-      label = 'Org Blue';
+      label = isSuperBlue ? 'Super Blue LAB' : 'Org Blue';
     } else if (str.includes('LAB') || str.includes('Laboratorio') || str.includes('Tallado')) {
       badge = 'LAB';
-      label = 'Org Blue';
+      label = isSuperBlue ? 'Super Blue LAB' : 'Org Blue';
     }
     return {
       theme: 'blue',
@@ -108,7 +125,7 @@ export const getLensStyleInfo = (lensName) => {
   }
 
   // 3. Multifocales (Púrpura) - BLUE ONE, FOTO GREY
-  if (str.toLowerCase().includes('multi') || str.toLowerCase().includes('digital')) {
+  if (str.toLowerCase().includes('multi') || str.toLowerCase().includes('multifocal')) {
     let badge = 'BLUE ONE';
     if (str.toLowerCase().includes('foto') || str.toLowerCase().includes('grey') || str.toLowerCase().includes('gris')) badge = 'FOTO GREY';
     return {
