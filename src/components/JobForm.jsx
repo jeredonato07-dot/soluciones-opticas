@@ -72,6 +72,54 @@ const QUICK_LENSES_CONFIG = [
   }
 ];
 
+// Helper to detect if a lens is Laboratorio, Bifocal, Multifocal or requires Lab calibration
+export const isLabProcessLens = (lens) => {
+  if (!lens) return false;
+  const type = String(lens.type || '').toLowerCase();
+  const category = String(lens.category || '').toLowerCase();
+  const name = String(lens.name || '').toLowerCase();
+  const fullName = String(lens.fullName || '').toLowerCase();
+  const rawName = String(lens.rawName || '').toLowerCase();
+
+  // 1. Laboratorio / Tallado / LAB
+  if (
+    type === 'laboratorio' || 
+    category.includes('lab') || 
+    name.includes('lab') || 
+    fullName.includes('lab') || 
+    rawName.includes('lab') ||
+    fullName.includes('tallado') ||
+    rawName.includes('tallado')
+  ) {
+    return true;
+  }
+
+  // 2. Bifocales
+  if (
+    category.includes('bifocal') || 
+    name.includes('bifocal') || 
+    fullName.includes('bifocal') || 
+    rawName.includes('bifocal') ||
+    name.includes('bif.') || 
+    fullName.includes('bif.') || 
+    rawName.includes('bif.')
+  ) {
+    return true;
+  }
+
+  // 3. Multifocales
+  if (
+    category.includes('multi') || 
+    name.includes('multi') || 
+    fullName.includes('multi') || 
+    rawName.includes('multi')
+  ) {
+    return true;
+  }
+
+  return false;
+};
+
 export default function JobForm({ campaign, localities, jobs = [], editingJob = null, onJobSaved, onCancelEdit }) {
   const priceList = getPriceList();
   const [localidadId, setLocalidadId] = useState(() => localStorage.getItem('optica_last_localidad_id') || '');
@@ -230,6 +278,10 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
     if (selectedOD) {
       setSelectedOI(selectedOD);
       setSearchOI(selectedOD.name);
+      if (isLabProcessLens(selectedOD)) {
+        setCalibradoProceso('Laboratorio');
+        setCalibradoTipo('Aro Completo');
+      }
     }
   };
 
@@ -245,7 +297,8 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
       name: displayName,
       fullName: matchedProduct.name,
       price: matchedProduct.price,
-      type: matchedProduct.type
+      type: matchedProduct.type,
+      category: matchedProduct.category
     };
 
     if (quickAccessTarget === 'both') {
@@ -259,6 +312,15 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
     } else if (quickAccessTarget === 'oi') {
       setSelectedOI(formattedProduct);
       setSearchOI(displayName);
+    }
+
+    // Auto-switch calibrado to Laboratorio Aro Completo if Lab / Bifocal / Multifocal
+    if (isLabProcessLens(matchedProduct)) {
+      setCalibradoProceso('Laboratorio');
+      setCalibradoTipo('Aro Completo');
+    } else if (quickAccessTarget === 'both') {
+      setCalibradoProceso('Stock');
+      setCalibradoTipo('Aro Completo');
     }
   };
 
@@ -716,10 +778,16 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
                               name: shortName,
                               fullName: item.name,
                               price: item.price,
-                              type: item.type
+                              type: item.type,
+                              category: item.category
                             });
                             setSearchOD(shortName);
                             setShowODList(false);
+
+                            if (isLabProcessLens(item)) {
+                              setCalibradoProceso('Laboratorio');
+                              setCalibradoTipo('Aro Completo');
+                            }
                           }}
                         >
                           <div className="flex-between">
@@ -796,10 +864,16 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
                               name: shortName,
                               fullName: item.name,
                               price: item.price,
-                              type: item.type
+                              type: item.type,
+                              category: item.category
                             });
                             setSearchOI(shortName);
                             setShowOIList(false);
+
+                            if (isLabProcessLens(item)) {
+                              setCalibradoProceso('Laboratorio');
+                              setCalibradoTipo('Aro Completo');
+                            }
                           }}
                         >
                           <div className="flex-between">
