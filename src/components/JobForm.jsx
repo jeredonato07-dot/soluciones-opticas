@@ -81,6 +81,19 @@ export const isLabProcessLens = (lens) => {
   const fullName = String(lens.fullName || '').toLowerCase();
   const rawName = String(lens.rawName || '').toLowerCase();
 
+  // 0. EXCEPCIÓN: Lentes de Stock (incluyendo Rango Extendido y Stock regular)
+  // Siempre corresponden al proceso de calibrado de Stock
+  if (
+    category === 'lentes de stock' || 
+    category.includes('stock') || 
+    rawName.includes('[lentes de stock]') || 
+    rawName.includes('rango extendido') || 
+    name.includes('rango ext') || 
+    fullName.includes('rango ext')
+  ) {
+    return false;
+  }
+
   // 1. Laboratorio / Tallado / LAB
   if (
     type === 'laboratorio' || 
@@ -281,6 +294,9 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
       if (isLabProcessLens(selectedOD)) {
         setCalibradoProceso('Laboratorio');
         setCalibradoTipo('Aro Completo');
+      } else {
+        setCalibradoProceso('Stock');
+        setCalibradoTipo('Aro Completo');
       }
     }
   };
@@ -318,9 +334,14 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
     if (isLabProcessLens(matchedProduct)) {
       setCalibradoProceso('Laboratorio');
       setCalibradoTipo('Aro Completo');
-    } else if (quickAccessTarget === 'both') {
-      setCalibradoProceso('Stock');
-      setCalibradoTipo('Aro Completo');
+    } else {
+      // It's a stock lens (Stock o Rango Extendido). Switch to Stock Aro Completo unless the other eye is Lab
+      const otherEyeIsLab = (quickAccessTarget === 'od' && isLabProcessLens(selectedOI)) ||
+                            (quickAccessTarget === 'oi' && isLabProcessLens(selectedOD));
+      if (!otherEyeIsLab) {
+        setCalibradoProceso('Stock');
+        setCalibradoTipo('Aro Completo');
+      }
     }
   };
 
@@ -787,6 +808,9 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
                             if (isLabProcessLens(item)) {
                               setCalibradoProceso('Laboratorio');
                               setCalibradoTipo('Aro Completo');
+                            } else if (!isLabProcessLens(selectedOI)) {
+                              setCalibradoProceso('Stock');
+                              setCalibradoTipo('Aro Completo');
                             }
                           }}
                         >
@@ -872,6 +896,9 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
 
                             if (isLabProcessLens(item)) {
                               setCalibradoProceso('Laboratorio');
+                              setCalibradoTipo('Aro Completo');
+                            } else if (!isLabProcessLens(selectedOD)) {
+                              setCalibradoProceso('Stock');
                               setCalibradoTipo('Aro Completo');
                             }
                           }}
