@@ -216,6 +216,15 @@
     "priceStr": "$169,060"
   },
   {
+    "id": 83,
+    "rawName": "[Monofocal Lab] Organico Lab Bco con coloracion",
+    "name": "Organico Lab Bco con coloracion",
+    "category": "Monofocal Lab",
+    "type": "Laboratorio",
+    "price": 32800,
+    "priceStr": "$32,800"
+  },
+  {
     "id": 25,
     "rawName": "[Bifocal] Bif. Flap Top Orgánico Blue Light Cut (Bifocales Flap Top) (Esferas: +5.50 a -4.00, Cilindros: +/- 4.00, Adición: 1.00 a 3.50)",
     "name": "Bif. Flap Top Orgánico Blue Light Cut (Bifocales Flap Top) (Esferas: +5.50 a -4.00, Cilindros: +/- 4.00, Adición: 1.00 a 3.50)",

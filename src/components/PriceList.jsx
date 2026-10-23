@@ -6,7 +6,14 @@ export const getPriceList = () => {
   const custom = localStorage.getItem('optica_custom_price_list');
   if (custom) {
     try {
-      return JSON.parse(custom);
+      const parsed = JSON.parse(custom);
+      if (Array.isArray(parsed)) {
+        const customMap = new Map(parsed.map(item => [item.id, item]));
+        const merged = defaultPriceList.map(defItem => customMap.get(defItem.id) || defItem);
+        const defaultIds = new Set(defaultPriceList.map(i => i.id));
+        const extraCustom = parsed.filter(i => !defaultIds.has(i.id));
+        return [...merged, ...extraCustom];
+      }
     } catch (e) {
       console.error("Error parsing custom price list:", e);
     }
@@ -144,6 +151,15 @@ export const getLensStyleInfo = (lensName) => {
       theme: 'amber',
       badge,
       label: isGris ? 'Org Foto Gris' : 'Org Foto Blue'
+    };
+  }
+
+  // 5. Orgánico Lab Bco con coloración
+  if (str.toLowerCase().includes('bco con color') || str.toLowerCase().includes('blanco con color')) {
+    return {
+      theme: 'slate',
+      badge: 'LAB',
+      label: 'Organico Lab Bco con coloracion'
     };
   }
 

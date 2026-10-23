@@ -273,13 +273,20 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
   }, []);
 
   // Filter list of prices for typeahead
+  const normalizeText = (str) =>
+    String(str || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
   const getFilteredLenses = (search) => {
     const lensesOnly = priceList.filter(item => item.category !== 'Calibrados y Trabajos' && item.price !== null);
     if (!search.trim()) return lensesOnly.slice(0, 8);
-    const term = search.toLowerCase();
+    const term = normalizeText(search);
     return lensesOnly.filter(item => 
-      item.rawName.toLowerCase().includes(term) || 
-      item.category.toLowerCase().includes(term)
+      normalizeText(item.rawName).includes(term) || 
+      normalizeText(item.name).includes(term) ||
+      normalizeText(item.category).includes(term)
     );
   };
 
