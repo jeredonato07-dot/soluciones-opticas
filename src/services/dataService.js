@@ -35,12 +35,87 @@ const KEYS = {
   GASTOS: 'optica_gastos'
 };
 
-// In-memory listeners for LocalStorage fallback
+// In-memory listeners for LocalStorage fallback & Smart Cloud Cache
 const listeners = {
   campaigns: [],
   jobs: {}, // key is campanaId
+  allJobs: [],
   gastos: {}, // key is campanaId
   allGastos: []
+};
+
+// Session cache to prevent excessive Firebase reads on historical collections
+let cachedAllJobs = null;
+let isFetchingAllJobs = false;
+let cachedAllGastos = null;
+let isFetchingAllGastos = false;
+
+const notifyAllJobsSubscribers = () => {
+  if (cachedAllJobs !== null) {
+    listeners.allJobs.forEach(cb => cb([...cachedAllJobs]));
+  }
+};
+
+const notifyAllGastosSubscribers = () => {
+  if (cachedAllGastos !== null) {
+    listeners.allGastos.forEach(cb => cb([...cachedAllGastos]));
+  }
+};
+
+// Reconstructs and merges localities so closed/past campaigns always retain their towns and letter codes
+// even if the user deletes old localities when starting a new campaign.
+export const resolveCampaignLocalities = (currentLocalities = [], campaignJobs = [], isClosedCampaign = false) => {
+  const locMap = new Map();
+
+  // For active campaigns, start with all currently configured localities
+  if (!isClosedCampaign) {
+    currentLocalities.forEach(loc => {
+      if (loc && loc.id) {
+        locMap.set(loc.id, { ...loc });
+      }
+    });
+  }
+
+  // Inspect jobs in the campaign to preserve/reconstruct any locality used in this campaign
+  (campaignJobs || []).forEach(job => {
+    const locId = job.localidadId;
+    if (!locId) return;
+
+    const existingCurrent = currentLocalities.find(l => l.id === locId);
+    const jobLetterCode = job.localidadCodigo || (job.refCode || '').replace(/[0-9]/g, '') || existingCurrent?.code || '?';
+    const fallbackFormattedName = String(locId)
+      .split('_')
+      .filter(Boolean)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+    const jobLocName = job.localidadNombre || existingCurrent?.name || fallbackFormattedName;
+
+    if (!locMap.has(locId)) {
+      locMap.set(locId, {
+        id: locId,
+        name: jobLocName,
+        code: jobLetterCode,
+        isHistorical: !existingCurrent
+      });
+    } else if (isClosedCampaign || job.localidadNombre || job.localidadCodigo) {
+      // Ensure closed campaign jobs keep their exact historical letter code and name
+      const entry = locMap.get(locId);
+      locMap.set(locId, {
+        ...entry,
+        name: job.localidadNombre || entry.name || jobLocName,
+        code: job.localidadCodigo || jobLetterCode || entry.code
+      });
+    }
+  });
+
+  // If a closed campaign has no jobs yet, fallback to currentLocalities
+  if (locMap.size === 0 && currentLocalities.length > 0) {
+    currentLocalities.forEach(loc => {
+      if (loc && loc.id) locMap.set(loc.id, { ...loc });
+    });
+  }
+
+  return Array.from(locMap.values()).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 };
 
 // --- Local Storage Helpers ---
@@ -298,6 +373,12 @@ export const subscribeTrabajos = (campanaId, onData) => {
         }
         return (a.sequence || 0) - (b.sequence || 0);
       });
+      // Keep session cache synchronized for this campaign without extra reads
+      if (cachedAllJobs !== null) {
+        const otherCampaignJobs = cachedAllJobs.filter(j => j.campanaId !== campanaId);
+        cachedAllJobs = [...otherCampaignJobs, ...list];
+        notifyAllJobsSubscribers();
+      }
       onData(list);
     }, (error) => {
       console.error("Firebase jobs subscription error:", error);
@@ -322,25 +403,45 @@ export const subscribeTrabajos = (campanaId, onData) => {
   };
 };
 
-export const subscribeAllJobs = (onData) => {
+// Optimized: fetches all historical jobs once per session and serves from memory cache,
+// preventing excessive Firebase read consumption when switching tabs.
+export const subscribeAllJobs = (onData, forceRefresh = false) => {
   const db = getFirebaseDb();
   if (db) {
-    const q = query(collection(db, 'trabajos'));
-    return onSnapshot(q, (snapshot) => {
-      const list = [];
-      snapshot.forEach(doc => {
-        list.push({ id: doc.id, ...doc.data() });
-      });
-      onData(list);
-    }, (error) => {
-      console.error("Firebase subscribeAllJobs error:", error);
-      onData(getLocalData(KEYS.JOBS));
-    });
+    listeners.allJobs.push(onData);
+
+    if (cachedAllJobs !== null && !forceRefresh) {
+      onData([...cachedAllJobs]);
+    } else if (!isFetchingAllJobs) {
+      isFetchingAllJobs = true;
+      getDocs(collection(db, 'trabajos'))
+        .then((snapshot) => {
+          const list = [];
+          snapshot.forEach(docSnap => {
+            list.push({ id: docSnap.id, ...docSnap.data() });
+          });
+          cachedAllJobs = list;
+          isFetchingAllJobs = false;
+          notifyAllJobsSubscribers();
+        })
+        .catch((error) => {
+          console.error("Firebase subscribeAllJobs error:", error);
+          isFetchingAllJobs = false;
+          onData(getLocalData(KEYS.JOBS));
+        });
+    }
+
+    return () => {
+      listeners.allJobs = listeners.allJobs.filter(cb => cb !== onData);
+    };
   }
 
   // Local Storage Fallback
+  listeners.allJobs.push(onData);
   onData(getLocalData(KEYS.JOBS));
-  return () => {};
+  return () => {
+    listeners.allJobs = listeners.allJobs.filter(cb => cb !== onData);
+  };
 };
 
 // --- GASTOS (Subscription & CRUD) ---
@@ -359,6 +460,11 @@ export const subscribeGastos = (campanaId, onData) => {
         list.push({ id: doc.id, ...doc.data() });
       });
       list.sort((a, b) => new Date(b.fecha || b.createdAt) - new Date(a.fecha || a.createdAt));
+      if (cachedAllGastos !== null) {
+        const otherGastos = cachedAllGastos.filter(g => g.campanaId !== campanaId);
+        cachedAllGastos = [...otherGastos, ...list].sort((a, b) => new Date(b.fecha || b.createdAt) - new Date(a.fecha || a.createdAt));
+        notifyAllGastosSubscribers();
+      }
       onData(list);
     }, (error) => {
       console.error("Firebase subscribeGastos error:", error);
@@ -380,21 +486,36 @@ export const subscribeGastos = (campanaId, onData) => {
   };
 };
 
-export const subscribeAllGastos = (onData) => {
+export const subscribeAllGastos = (onData, forceRefresh = false) => {
   const db = getFirebaseDb();
   if (db) {
-    const q = query(collection(db, 'gastos'));
-    return onSnapshot(q, (snapshot) => {
-      const list = [];
-      snapshot.forEach(doc => {
-        list.push({ id: doc.id, ...doc.data() });
-      });
-      list.sort((a, b) => new Date(b.fecha || b.createdAt) - new Date(a.fecha || a.createdAt));
-      onData(list);
-    }, (error) => {
-      console.error("Firebase subscribeAllGastos error:", error);
-      onData(getLocalData(KEYS.GASTOS, []));
-    });
+    listeners.allGastos.push(onData);
+
+    if (cachedAllGastos !== null && !forceRefresh) {
+      onData([...cachedAllGastos]);
+    } else if (!isFetchingAllGastos) {
+      isFetchingAllGastos = true;
+      getDocs(collection(db, 'gastos'))
+        .then((snapshot) => {
+          const list = [];
+          snapshot.forEach(docSnap => {
+            list.push({ id: docSnap.id, ...docSnap.data() });
+          });
+          list.sort((a, b) => new Date(b.fecha || b.createdAt) - new Date(a.fecha || a.createdAt));
+          cachedAllGastos = list;
+          isFetchingAllGastos = false;
+          notifyAllGastosSubscribers();
+        })
+        .catch((error) => {
+          console.error("Firebase subscribeAllGastos error:", error);
+          isFetchingAllGastos = false;
+          onData(getLocalData(KEYS.GASTOS, []));
+        });
+    }
+
+    return () => {
+      listeners.allGastos = listeners.allGastos.filter(cb => cb !== onData);
+    };
   }
 
   // Local Storage Fallback
@@ -420,9 +541,17 @@ export const saveGasto = async (gasto) => {
       const { id, ...dataToSave } = gastoData;
       const ref = doc(db, 'gastos', id);
       await updateDoc(ref, dataToSave);
+      if (cachedAllGastos !== null) {
+        cachedAllGastos = cachedAllGastos.map(g => g.id === id ? { id, ...dataToSave } : g);
+        notifyAllGastosSubscribers();
+      }
       return id;
     } else {
       const ref = await addDoc(collection(db, 'gastos'), gastoData);
+      if (cachedAllGastos !== null) {
+        cachedAllGastos = [{ id: ref.id, ...gastoData }, ...cachedAllGastos];
+        notifyAllGastosSubscribers();
+      }
       return ref.id;
     }
   }
@@ -447,6 +576,10 @@ export const deleteGasto = async (gastoId, campanaId) => {
   const db = getFirebaseDb();
   if (db) {
     await deleteDoc(doc(db, 'gastos', gastoId));
+    if (cachedAllGastos !== null) {
+      cachedAllGastos = cachedAllGastos.filter(g => g.id !== gastoId);
+      notifyAllGastosSubscribers();
+    }
     return;
   }
 
@@ -690,6 +823,10 @@ export const deleteTrabajo = async (trabajoId, campanaId) => {
 
   if (db) {
     await deleteDoc(doc(db, 'trabajos', trabajoId));
+    if (cachedAllJobs !== null) {
+      cachedAllJobs = cachedAllJobs.filter(t => t.id !== trabajoId);
+      notifyAllJobsSubscribers();
+    }
     return;
   }
 
@@ -708,6 +845,7 @@ export const syncLocalToFirebase = async (firebaseDbInstance) => {
   const localLocs = getLocalData(KEYS.LOCALITIES, []);
   const localCampanas = getLocalData(KEYS.CAMPAIGNS, []);
   const localJobs = getLocalData(KEYS.JOBS, []);
+  const localGastos = getLocalData(KEYS.GASTOS, []);
 
   // 1. Sync Localities
   for (const loc of localLocs) {
@@ -728,12 +866,16 @@ export const syncLocalToFirebase = async (firebaseDbInstance) => {
     await setDoc(doc(firebaseDbInstance, 'trabajos', job.id), {
       campanaId: job.campanaId,
       localidadId: job.localidadId,
+      localidadNombre: job.localidadNombre || '',
+      localidadCodigo: job.localidadCodigo || '',
       refCode: job.refCode,
       sequence: job.sequence,
       paciente: job.paciente || '',
       cristalOD: job.cristalOD || null,
       cristalOI: job.cristalOI || null,
       calibradoTipo: job.calibradoTipo || 'Aro Completo',
+      calibradoProceso: job.calibradoProceso || 'Stock',
+      isPaseDeCristales: !!job.isPaseDeCristales,
       calibradoPrecio: job.calibradoPrecio || 0,
       calibradoNombre: job.calibradoNombre || '',
       precioTotal: job.precioTotal || 0,
@@ -743,9 +885,20 @@ export const syncLocalToFirebase = async (firebaseDbInstance) => {
     });
   }
 
+  // 4. Sync Gastos
+  for (const gasto of localGastos) {
+    const { id, ...gastoData } = gasto;
+    if (id) {
+      await setDoc(doc(firebaseDbInstance, 'gastos', id), gastoData);
+    } else {
+      await addDoc(collection(firebaseDbInstance, 'gastos'), gastoData);
+    }
+  }
+
   // Clear local keys to avoid redundant data
   localStorage.removeItem(KEYS.CAMPAIGNS);
   localStorage.removeItem(KEYS.JOBS);
+  localStorage.removeItem(KEYS.GASTOS);
 };
 
 // --- DOWNLOAD CLOUD DATA TO LOCALSTORAGE (READ-ONLY) ---
@@ -770,15 +923,79 @@ export const downloadCloudToLocal = async (firebaseDbInstance) => {
   const cloudJobs = [];
   jobSnap.forEach(docSnap => cloudJobs.push({ id: docSnap.id, ...docSnap.data() }));
 
+  // 4. Fetch Gastos from Firebase (Read Only)
+  const gastoSnap = await getDocs(collection(firebaseDbInstance, 'gastos'));
+  const cloudGastos = [];
+  gastoSnap.forEach(docSnap => cloudGastos.push({ id: docSnap.id, ...docSnap.data() }));
+
   // Save downloaded data into LocalStorage
   if (cloudLocs.length > 0) setLocalData(KEYS.LOCALITIES, cloudLocs);
   if (cloudCampanas.length > 0) setLocalData(KEYS.CAMPAIGNS, cloudCampanas);
   if (cloudJobs.length > 0) setLocalData(KEYS.JOBS, cloudJobs);
+  if (cloudGastos.length > 0) setLocalData(KEYS.GASTOS, cloudGastos);
 
   return {
     localitiesCount: cloudLocs.length,
     campaignsCount: cloudCampanas.length,
-    jobsCount: cloudJobs.length
+    jobsCount: cloudJobs.length,
+    gastosCount: cloudGastos.length
+  };
+};
+
+// --- FULL SECURITY BACKUP EXPORT (.JSON) ---
+export const exportFullBackup = async () => {
+  const db = getFirebaseDb();
+  let localities = [];
+  let campaigns = [];
+  let jobs = [];
+  let gastos = [];
+
+  if (db) {
+    const [locSnap, campSnap, jobSnap, gastoSnap] = await Promise.all([
+      getDocs(collection(db, 'localidades')),
+      getDocs(collection(db, 'campanas')),
+      getDocs(collection(db, 'trabajos')),
+      getDocs(collection(db, 'gastos'))
+    ]);
+    locSnap.forEach(d => localities.push(d.data()));
+    campSnap.forEach(d => campaigns.push({ id: d.id, ...d.data() }));
+    jobSnap.forEach(d => jobs.push({ id: d.id, ...d.data() }));
+    gastoSnap.forEach(d => gastos.push({ id: d.id, ...d.data() }));
+
+    // Refresh session cache while we are at it
+    cachedAllJobs = jobs;
+    cachedAllGastos = gastos;
+  } else {
+    localities = getLocalData(KEYS.LOCALITIES, []);
+    campaigns = getLocalData(KEYS.CAMPAIGNS, []);
+    jobs = getLocalData(KEYS.JOBS, []);
+    gastos = getLocalData(KEYS.GASTOS, []);
+  }
+
+  let customPriceList = null;
+  try {
+    const rawPrices = localStorage.getItem('optica_custom_price_list');
+    if (rawPrices) customPriceList = JSON.parse(rawPrices);
+  } catch (e) {
+    console.error("Error reading custom price list for backup:", e);
+  }
+
+  return {
+    app: 'Soluciones Ópticas - Gestión de Planillas',
+    exportedAt: new Date().toISOString(),
+    counts: {
+      campaigns: campaigns.length,
+      localities: localities.length,
+      jobs: jobs.length,
+      gastos: gastos.length
+    },
+    data: {
+      campaigns,
+      localities,
+      jobs,
+      gastos,
+      customPriceList
+    }
   };
 };
 
@@ -789,6 +1006,7 @@ export const resetAllData = async () => {
       const campSnap = await getDocs(collection(db, 'campanas'));
       const jobSnap = await getDocs(collection(db, 'trabajos'));
       const seqSnap = await getDocs(collection(db, 'secuencias'));
+      const gastoSnap = await getDocs(collection(db, 'gastos'));
       
       const promises = [];
       campSnap.forEach(d => {
@@ -800,6 +1018,9 @@ export const resetAllData = async () => {
       seqSnap.forEach(d => {
         promises.push(deleteDoc(doc(db, 'secuencias', d.id)));
       });
+      gastoSnap.forEach(d => {
+        promises.push(deleteDoc(doc(db, 'gastos', d.id)));
+      });
       
       await Promise.all(promises);
     } catch (e) {
@@ -807,8 +1028,11 @@ export const resetAllData = async () => {
     }
   }
 
+  cachedAllJobs = [];
+  cachedAllGastos = [];
   localStorage.removeItem(KEYS.CAMPAIGNS);
   localStorage.removeItem(KEYS.JOBS);
+  localStorage.removeItem(KEYS.GASTOS);
   localStorage.removeItem('optica_active_campaign_id');
   localStorage.removeItem('optica_last_localidad_id');
 };

@@ -24,6 +24,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'general', 'finances', 'entry', 'list', 'pricelist', 'settings'
   const [editingJob, setEditingJob] = useState(null);
   const [localities, setLocalities] = useState([]);
+  const [campaigns, setCampaigns] = useState([]);
   const [activeCampaign, setActiveCampaign] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [firebaseConnected, setFirebaseConnected] = useState(isFirebaseConfigured());
@@ -41,17 +42,23 @@ export default function App() {
   useEffect(() => {
     const storedId = localStorage.getItem('optica_active_campaign_id');
     const unsub = subscribeCampanas((campaignList) => {
+      setCampaigns(campaignList);
       if (campaignList.length > 0) {
-        // Find stored campaign ONLY if it is still active
-        const storedActive = campaignList.find(c => c.id === storedId && c.status === 'activa');
-        const firstActive = campaignList.find(c => c.status === 'activa');
-        const active = storedActive || firstActive || null;
-        setActiveCampaign(active);
-        if (active) {
-          localStorage.setItem('optica_active_campaign_id', active.id);
-        } else {
-          localStorage.removeItem('optica_active_campaign_id');
-        }
+        setActiveCampaign((prev) => {
+          // If user is currently inspecting a specific campaign that still exists, keep its updated state
+          if (prev) {
+            const updatedCurrent = campaignList.find(c => c.id === prev.id);
+            if (updatedCurrent) return updatedCurrent;
+          }
+          // Otherwise resolve from stored active campaign or first active campaign
+          const storedActive = campaignList.find(c => c.id === storedId && c.status === 'activa');
+          const firstActive = campaignList.find(c => c.status === 'activa');
+          const active = storedActive || firstActive || campaignList[0] || null;
+          if (active && active.status === 'activa') {
+            localStorage.setItem('optica_active_campaign_id', active.id);
+          }
+          return active;
+        });
       } else {
         setActiveCampaign(null);
       }
@@ -74,12 +81,12 @@ export default function App() {
   // Handle active campaign changes
   const handleActiveCampaignChange = (campaign) => {
     setActiveCampaign(campaign);
-    if (campaign) {
+    if (campaign && campaign.status === 'activa') {
       localStorage.setItem('optica_active_campaign_id', campaign.id);
-    } else {
-      localStorage.removeItem('optica_active_campaign_id');
     }
   };
+
+  const currentOpenCampaign = campaigns.find(c => c.status === 'activa') || null;
 
   return (
     <div className="app-wrapper">
@@ -171,20 +178,32 @@ export default function App() {
       {/* Main Content Pane */}
       <main className="app-main-content">
         <header className="app-main-header">
-          <div className="header-campaign-info">
+          <div className="header-campaign-info flex-align-center gap-2 flex-wrap">
             {activeCampaign ? (
-              <div className={`active-camp-badge ${activeCampaign.status === 'cerrada' ? 'warning border border-warning-soft' : ''}`} style={activeCampaign.status === 'cerrada' ? { backgroundColor: 'rgba(245, 158, 11, 0.15)', borderColor: 'rgba(245, 158, 11, 0.3)' } : {}}>
-                <span className={`dot ${activeCampaign.status === 'cerrada' ? 'bg-warning' : 'bg-success animate-pulse'}`}></span>
-                <span className="flex-align-center gap-1">
-                  <span>{activeCampaign.status === 'cerrada' ? '🔒 Campaña Cerrada:' : '🟢 Campaña Activa:'}</span>
-                  <strong>{activeCampaign.name}</strong>
-                  {activeCampaign.status === 'cerrada' && (
-                    <span className="badge-small bg-warning text-dark font-xs font-bold ml-1 px-1 rounded">
-                      HISTÓRICO
-                    </span>
-                  )}
-                </span>
-              </div>
+              <>
+                <div className={`active-camp-badge ${activeCampaign.status === 'cerrada' ? 'warning border border-warning-soft' : ''}`} style={activeCampaign.status === 'cerrada' ? { backgroundColor: 'rgba(245, 158, 11, 0.15)', borderColor: 'rgba(245, 158, 11, 0.3)' } : {}}>
+                  <span className={`dot ${activeCampaign.status === 'cerrada' ? 'bg-warning' : 'bg-success animate-pulse'}`}></span>
+                  <span className="flex-align-center gap-1">
+                    <span>{activeCampaign.status === 'cerrada' ? '🔒 Consultando Campaña Cerrada:' : '🟢 Campaña Activa:'}</span>
+                    <strong>{activeCampaign.name}</strong>
+                    {activeCampaign.status === 'cerrada' && (
+                      <span className="badge-small bg-warning text-dark font-xs font-bold ml-1 px-1 rounded">
+                        SOLO LECTURA
+                      </span>
+                    )}
+                  </span>
+                </div>
+                {activeCampaign.status === 'cerrada' && currentOpenCampaign && (
+                  <button
+                    type="button"
+                    className="btn btn-xs btn-success flex-align-center gap-1 font-bold"
+                    onClick={() => handleActiveCampaignChange(currentOpenCampaign)}
+                    title="Regresar a la campaña activa de trabajo"
+                  >
+                    ↩️ Volver a Campaña Activa ({currentOpenCampaign.name})
+                  </button>
+                )}
+              </>
             ) : (
               <div className="active-camp-badge warning">
                 <AlertTriangle size={14} className="text-warning" />
@@ -201,6 +220,8 @@ export default function App() {
           {activeTab === 'dashboard' && (
             <Dashboard 
               campaign={activeCampaign} 
+              campaigns={campaigns}
+              onSelectCampaign={handleActiveCampaignChange}
               jobs={jobs} 
               localities={localities} 
             />
@@ -209,9 +230,9 @@ export default function App() {
           {activeTab === 'general' && (
             <GeneralDashboard 
               localities={localities} 
-              onSelectCampaign={(camp) => {
+              onSelectCampaign={(camp, targetTab = 'dashboard') => {
                 handleActiveCampaignChange(camp);
-                setActiveTab('dashboard');
+                setActiveTab(targetTab);
               }}
             />
           )}
@@ -219,6 +240,7 @@ export default function App() {
           {activeTab === 'finances' && (
             <FinanceModule 
               activeCampaign={activeCampaign}
+              activeJobs={jobs}
               onSelectCampaign={(camp) => {
                 handleActiveCampaignChange(camp);
               }}
@@ -228,6 +250,8 @@ export default function App() {
           {activeTab === 'entry' && activeCampaign && (
             <JobForm 
               campaign={activeCampaign} 
+              currentOpenCampaign={currentOpenCampaign}
+              onSelectCampaign={handleActiveCampaignChange}
               localities={localities} 
               jobs={jobs}
               editingJob={editingJob}
@@ -247,9 +271,12 @@ export default function App() {
           {activeTab === 'list' && activeCampaign && (
             <JobList 
               campaign={activeCampaign} 
+              campaigns={campaigns}
+              onSelectCampaign={handleActiveCampaignChange}
               jobs={jobs} 
               localities={localities}
               onEditJob={(job) => {
+                if (activeCampaign.status === 'cerrada') return;
                 setEditingJob(job);
                 setActiveTab('entry');
               }}

@@ -11,7 +11,8 @@ import {
   XCircle,
   HelpCircle,
   Download,
-  Lock
+  Lock,
+  Eye
 } from 'lucide-react';
 import { 
   saveCampana, 
@@ -22,6 +23,7 @@ import {
   subscribeAllJobs,
   syncLocalToFirebase,
   downloadCloudToLocal,
+  exportFullBackup,
   resetAllData
 } from '../services/dataService';
 import { isFirebaseConfigured, resetFirebase, getFirebaseDb } from '../firebase';
@@ -124,7 +126,9 @@ export default function Settings({
 
   const handleSelectCampaign = (camp) => {
     setActiveCampaign(camp);
-    localStorage.setItem('optica_active_campaign_id', camp.id);
+    if (camp.status === 'activa') {
+      localStorage.setItem('optica_active_campaign_id', camp.id);
+    }
   };
 
   const handleToggleCampaignStatus = async (camp) => {
@@ -337,6 +341,31 @@ export default function Settings({
     }
   };
 
+  const [isExportingBackup, setIsExportingBackup] = useState(false);
+
+  const handleExportFullBackup = async () => {
+    try {
+      setIsExportingBackup(true);
+      const backup = await exportFullBackup();
+      const jsonStr = JSON.stringify(backup, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const dateStr = new Date().toISOString().split('T')[0];
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `respaldo_soluciones_opticas_${dateStr}.json`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Error al generar respaldo completo:", e);
+      alert("Error al generar el archivo de respaldo.");
+    } finally {
+      setIsExportingBackup(false);
+    }
+  };
+
   const handleResetDatabase = async () => {
     if (window.confirm('⚠️ ATENCIÓN: ¿Estás seguro de que deseas eliminar TODOS los trabajos y campañas? Las localidades y sus códigos se conservarán. Esta acción es definitiva y borrará los datos locales (y de la nube si está conectada).')) {
       try {
@@ -461,14 +490,15 @@ export default function Settings({
                           {activeCampaign?.id !== camp.id ? (
                             <button
                               type="button"
-                              className="btn btn-xs btn-primary"
+                              className={`btn btn-xs ${camp.status === 'cerrada' ? 'btn-outline text-warning border-warning' : 'btn-primary'} flex-align-center gap-1`}
                               onClick={() => handleSelectCampaign(camp)}
+                              title={camp.status === 'cerrada' ? 'Consultar campaña en modo Solo Lectura' : 'Establecer como campaña activa de trabajo'}
                             >
-                              Activar
+                              {camp.status === 'cerrada' ? <><Eye size={12} /> Consultar</> : 'Activar'}
                             </button>
                           ) : (
-                            <span className="badge badge-primary flex-align-center gap-1 font-semibold">
-                              <Check size={14} /> Seleccionada
+                            <span className={`badge ${camp.status === 'cerrada' ? 'badge-warning text-dark' : 'badge-primary'} flex-align-center gap-1 font-semibold`}>
+                              <Check size={14} /> {camp.status === 'cerrada' ? 'Consultando' : 'Seleccionada'}
                             </span>
                           )}
 
@@ -499,9 +529,29 @@ export default function Settings({
               </div>
             </div>
 
-            {/* Danger Zone / Reset App Data */}
+            {/* Full Security Backup Section */}
             <div className="divider mt-4"></div>
-            <div className="bg-danger-soft p-3 rounded-lg border border-danger flex-align-center justify-between gap-3 mt-2 col-12-mobile">
+            <div className="bg-dark-soft p-3 rounded-lg border border-primary-soft flex-align-center justify-between gap-3 flex-wrap">
+              <div>
+                <strong className="text-primary block font-semibold flex-align-center gap-1">
+                  🛡️ Resguardo Completo de Base de Datos (Copia de Seguridad)
+                </strong>
+                <span className="small text-secondary block mt-1">
+                  Descarga en tu computadora un archivo <code>.json</code> con todas las campañas históricas, trabajos, pacientes, gastos, localidades y lista de precios.
+                </span>
+              </div>
+              <button
+                type="button"
+                className="btn btn-sm btn-primary font-bold flex-align-center gap-1"
+                onClick={handleExportFullBackup}
+                disabled={isExportingBackup}
+              >
+                <Download size={16} /> {isExportingBackup ? 'Generando Copia...' : 'Descargar Respaldo Completo (.JSON)'}
+              </button>
+            </div>
+
+            {/* Danger Zone / Reset App Data */}
+            <div className="bg-danger-soft p-3 rounded-lg border border-danger flex-align-center justify-between gap-3 mt-1 col-12-mobile">
               <div>
                 <strong className="text-danger block font-semibold">Zona de Peligro: Reiniciar Aplicación</strong>
                 <span className="small text-secondary block mt-1">
@@ -528,9 +578,15 @@ export default function Settings({
                 <MapPin size={22} className="text-primary" />
                 Gestión de Localidades
               </h3>
-              <p className="text-secondary small">
-                Define las localidades asociadas. Cada una requiere una letra única para generar los códigos de referencia automáticos (ej. 1A, 2A).
+              <p className="text-secondary small m-0">
+                Define las localidades para la campaña actual. Cada una requiere una letra única para generar los códigos de referencia automáticos (ej. 1A, 2A).
               </p>
+              <div className="p-2 mt-2 rounded bg-dark-soft border border-info-soft text-info font-xs flex-align-center gap-2">
+                <Info size={15} className="flex-shrink-0" />
+                <span>
+                  <strong>Tranquilidad para nuevas campañas:</strong> Al iniciar una nueva campaña vacía, puedes eliminar las localidades anteriores y cargar las nuevas sin problema. Las campañas cerradas conservarán automáticamente los nombres y códigos de sus localidades originales en el historial.
+                </span>
+              </div>
             </div>
 
             {/* Create Locality Form */}

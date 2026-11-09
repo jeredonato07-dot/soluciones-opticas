@@ -133,7 +133,7 @@ export const isLabProcessLens = (lens) => {
   return false;
 };
 
-export default function JobForm({ campaign, localities, jobs = [], editingJob = null, onJobSaved, onCancelEdit }) {
+export default function JobForm({ campaign, currentOpenCampaign, onSelectCampaign, localities, jobs = [], editingJob = null, onJobSaved, onCancelEdit }) {
   const priceList = getPriceList();
   const [localidadId, setLocalidadId] = useState(() => localStorage.getItem('optica_last_localidad_id') || '');
   const [isChangingLocality, setIsChangingLocality] = useState(false);
@@ -429,6 +429,10 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
       setErrorMsg('No hay ninguna campaña activa.');
       return;
     }
+    if (campaign.status === 'cerrada') {
+      setErrorMsg('Acción bloqueada: Esta campaña está cerrada y protegida en modo de solo consulta.');
+      return;
+    }
     if (!localidadId) {
       setErrorMsg('Por favor selecciona una localidad.');
       return;
@@ -450,9 +454,12 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
     setErrorMsg('');
 
     try {
+      const selectedLocObj = localities.find(l => l.id === localidadId);
       const jobData = {
         campanaId: campaign.id,
         localidadId,
+        localidadNombre: selectedLocObj?.name || editingJob?.localidadNombre || '',
+        localidadCodigo: selectedLocObj?.code || editingJob?.localidadCodigo || (refCode || '').replace(/[0-9]/g, ''),
         refCode,
         sequence,
         isManualSequence,
@@ -537,31 +544,50 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
     }).format(val);
   };
 
+  // Strict Read-Only Protection if viewing a Closed Campaign
+  if (campaign && campaign.status === 'cerrada') {
+    return (
+      <div className="glass-card p-5 max-width-950 mx-auto text-center border border-warning" style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0%, rgba(22, 28, 45, 0.95) 100%)' }}>
+        <div className="mb-3" style={{ fontSize: '2.5rem' }}>🔒</div>
+        <h2 className="text-white m-0 mb-2">Campaña Cerrada: {campaign.name}</h2>
+        <p className="text-secondary max-width-600 mx-auto mb-4">
+          Estás visualizando una campaña histórica que se encuentra <strong>cerrada y protegida en modo de solo consulta</strong>. 
+          Para evitar que se mezclen trabajos o montos a facturar con tus campañas anteriores, la carga de nuevos trabajos está bloqueada aquí.
+        </p>
+        {currentOpenCampaign && onSelectCampaign ? (
+          <button
+            type="button"
+            className="btn btn-success btn-md font-bold"
+            onClick={() => onSelectCampaign(currentOpenCampaign)}
+          >
+            🟢 Cambiar a Campaña Activa ({currentOpenCampaign.name}) para Cargar Trabajos
+          </button>
+        ) : (
+          <p className="text-warning font-sm">
+            Ve a la pestaña de <strong>Configuración</strong> para crear o activar tu campaña de trabajo actual.
+          </p>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="glass-card p-4 max-width-950 mx-auto">
       {/* Campaign Context Indicator */}
       {campaign && (
         <div 
-          className={`p-3 mb-4 rounded-lg flex-between align-center flex-wrap gap-2 border ${
-            campaign.status === 'cerrada' 
-              ? 'border-warning' 
-              : 'border-success-soft'
-          }`}
+          className="p-3 mb-4 rounded-lg flex-between align-center flex-wrap gap-2 border border-success-soft"
           style={{
-            background: campaign.status === 'cerrada'
-              ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(22, 28, 45, 0.95) 100%)'
-              : 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(22, 28, 45, 0.95) 100%)'
+            background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(22, 28, 45, 0.95) 100%)'
           }}
         >
           <div className="flex-align-center gap-2">
-            <span className="font-lg">
-              {campaign.status === 'cerrada' ? '⚠️' : '🎯'}
-            </span>
+            <span className="font-lg">🎯</span>
             <div>
               <div className="flex-align-center gap-2 flex-wrap">
                 <span className="text-secondary font-xs font-semibold">DESTINO DEL TRABAJO:</span>
-                <span className={`badge-small ${campaign.status === 'cerrada' ? 'bg-warning text-dark font-bold' : 'bg-success text-white font-bold'}`}>
-                  {campaign.status === 'cerrada' ? '🔒 CAMPAÑA CERRADA' : '🟢 CAMPAÑA ACTIVA'}
+                <span className="badge-small bg-success text-white font-bold">
+                  🟢 CAMPAÑA ACTIVA
                 </span>
               </div>
               <strong className="text-white font-md block mt-1">
@@ -569,11 +595,6 @@ export default function JobForm({ campaign, localities, jobs = [], editingJob = 
               </strong>
             </div>
           </div>
-          {campaign.status === 'cerrada' && (
-            <div className="bg-dark-soft p-2 rounded border border-warning-soft text-warning font-xs" style={{ maxWidth: '380px' }}>
-              <strong>Atención:</strong> Estás por registrar un trabajo en una campaña que ya fue <u>cerrada</u>. Si este trabajo corresponde a una nueva campaña, crea o selecciona la campaña activa en <strong>Configuración</strong>.
-            </div>
-          )}
         </div>
       )}
 

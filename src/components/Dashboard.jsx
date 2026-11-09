@@ -7,9 +7,11 @@ import {
   CheckCircle2, 
   Clock, 
   Layers,
-  FileText
+  FileText,
+  Calendar
 } from 'lucide-react';
 import { getPriceList, getCanonicalLens } from './PriceList';
+import { resolveCampaignLocalities } from '../services/dataService';
 
 function getCalibrationUnitPrice(cType, cProcess) {
   const priceList = getPriceList();
@@ -28,7 +30,7 @@ function getCalibrationUnitPrice(cType, cProcess) {
   return calProd ? (calProd.price || 0) : 0;
 }
 
-export default function Dashboard({ campaign, jobs, localities }) {
+export default function Dashboard({ campaign, campaigns = [], onSelectCampaign, jobs, localities }) {
   if (!campaign) {
     return (
       <div className="card text-center py-5">
@@ -40,6 +42,8 @@ export default function Dashboard({ campaign, jobs, localities }) {
   }
 
   const priceList = getPriceList();
+  const isClosed = campaign?.status === 'cerrada';
+  const effectiveLocalities = resolveCampaignLocalities(localities, jobs, isClosed);
 
   // Calculate statistics
   const totalJobs = jobs.length;
@@ -86,18 +90,21 @@ export default function Dashboard({ campaign, jobs, localities }) {
     const calCount = isHalf ? 0.5 : 1.0;
     
     const basePrice = getCalibrationUnitPrice(cType, cProcess);
+    const hasSavedCalib = job.calibradoPrecio !== undefined && job.calibradoPrecio !== null;
+    const jobCalibPrice = hasSavedCalib ? Number(job.calibradoPrecio) : (isHalf ? basePrice / 2 : basePrice);
+    const jobCalibUnitPrice = hasSavedCalib ? (isHalf ? jobCalibPrice * 2 : jobCalibPrice) : basePrice;
+    const effectiveUnitPrice = isClosed ? (jobCalibUnitPrice || basePrice) : (basePrice || jobCalibUnitPrice);
     
     if (!calibrationStats[displayName]) {
-      calibrationStats[displayName] = { count: 0, billing: 0, unitPrice: basePrice };
+      calibrationStats[displayName] = { count: 0, billing: 0, unitPrice: effectiveUnitPrice };
     }
     calibrationStats[displayName].count += calCount;
-    calibrationStats[displayName].billing += (job.calibradoPrecio !== undefined ? job.calibradoPrecio : (isHalf ? basePrice / 2 : basePrice));
-    if (!calibrationStats[displayName].unitPrice && job.calibradoPrecio !== undefined) {
-      calibrationStats[displayName].unitPrice = isHalf ? job.calibradoPrecio * 2 : job.calibradoPrecio;
+    calibrationStats[displayName].billing += jobCalibPrice;
+    if (!calibrationStats[displayName].unitPrice && effectiveUnitPrice) {
+      calibrationStats[displayName].unitPrice = effectiveUnitPrice;
     }
 
     // Cristales (OD + OI, priced at 50% per lens)
-    const isClosed = campaign?.status === 'cerrada';
     if (job.cristalOD) {
       const canonical = getCanonicalLens(job.cristalOD, priceList, isClosed);
       const type = canonical.type || job.cristalOD.type || 'Stock';
@@ -145,9 +152,9 @@ export default function Dashboard({ campaign, jobs, localities }) {
     }
   });
 
-  // Localities breakdown
+  // Localities breakdown (uses effectiveLocalities so closed campaigns retain deleted localities)
   const localityStats = {};
-  localities.forEach(loc => {
+  effectiveLocalities.forEach(loc => {
     localityStats[loc.id] = {
       name: loc.name,
       code: loc.code,
@@ -209,10 +216,10 @@ export default function Dashboard({ campaign, jobs, localities }) {
       {/* Large Prominent Campaign Header Banner */}
       <div 
         className={`dashboard-header mb-4 p-4 rounded-lg glass-card border ${
-          campaign.status === 'cerrada' ? 'border-warning-soft' : 'border-success-soft'
+          isClosed ? 'border-warning-soft' : 'border-success-soft'
         }`}
         style={{
-          background: campaign.status === 'cerrada'
+          background: isClosed
             ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(22, 28, 45, 0.95) 100%)'
             : 'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(22, 28, 45, 0.95) 100%)'
         }}
@@ -220,7 +227,7 @@ export default function Dashboard({ campaign, jobs, localities }) {
         <div className="flex-between align-center flex-wrap gap-3">
           <div>
             <div className="flex-align-center gap-2 mb-2 flex-wrap">
-              {campaign.status === 'cerrada' ? (
+              {isClosed ? (
                 <span className="badge badge-warning font-sm py-1 px-3 flex-align-center gap-1 shadow-sm font-bold">
                   🔒 CAMPAÑA CERRADA • HISTORIAL / SOLO CONSULTA
                 </span>
@@ -236,9 +243,9 @@ export default function Dashboard({ campaign, jobs, localities }) {
             <h1 className="m-0 text-white font-extrabold" style={{ fontSize: '1.85rem', letterSpacing: '-0.02em' }}>
               {campaign.name}
             </h1>
-            {campaign.status === 'cerrada' ? (
+            {isClosed ? (
               <p className="text-warning font-sm m-0 mt-2 flex-align-center gap-1">
-                ⚠️ Estás visualizando los registros y balances históricos de una <strong>campaña cerrada</strong>. Todos los datos mostrados son históricos y de consulta.
+                ⚠️ Estás visualizando los registros y balances históricos congelados de una <strong>campaña cerrada</strong> (modo solo lectura).
               </p>
             ) : (
               <p className="text-secondary font-sm m-0 mt-1">
@@ -246,6 +253,29 @@ export default function Dashboard({ campaign, jobs, localities }) {
               </p>
             )}
           </div>
+
+          {/* Campaign Quick Switcher */}
+          {campaigns.length > 1 && onSelectCampaign && (
+            <div className="bg-dark-soft p-2 rounded-lg border border-color flex-align-center gap-2">
+              <Calendar size={16} className="text-secondary ml-1" />
+              <span className="font-xs text-secondary font-semibold">Cambiar Vista:</span>
+              <select
+                className="form-control form-control-sm"
+                style={{ minWidth: '210px', background: 'var(--bg-sidebar)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}
+                value={campaign.id}
+                onChange={(e) => {
+                  const found = campaigns.find(c => c.id === e.target.value);
+                  if (found) onSelectCampaign(found);
+                }}
+              >
+                {campaigns.map(c => (
+                  <option key={c.id} value={c.id}>
+                    {c.status === 'activa' ? '🟢 ' : '🔒 '} {c.name} ({c.status === 'activa' ? 'Activa' : 'Cerrada'})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
       </div>
 

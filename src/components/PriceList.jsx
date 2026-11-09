@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Search, Tag, Edit, RotateCcw, Check, X, Filter, BookOpen, DollarSign } from 'lucide-react';
 import defaultPriceList from '../data/lista_de_precios.json';
 
+const PRICE_LIST_STORAGE_KEY = 'optica_custom_price_list_v2026_11';
+
 export const getPriceList = () => {
-  const custom = localStorage.getItem('optica_custom_price_list');
+  const custom = localStorage.getItem(PRICE_LIST_STORAGE_KEY);
   if (custom) {
     try {
       const parsed = JSON.parse(custom);
@@ -22,7 +24,7 @@ export const getPriceList = () => {
 };
 
 export const savePriceList = (newList) => {
-  localStorage.setItem('optica_custom_price_list', JSON.stringify(newList));
+  localStorage.setItem(PRICE_LIST_STORAGE_KEY, JSON.stringify(newList));
 };
 
 export const getShortName = (item) => {
@@ -293,7 +295,7 @@ export default function PriceList() {
 
   const handleResetCatalog = () => {
     if (window.confirm("¿Deseas restablecer la lista de precios a sus valores de fábrica originales?")) {
-      localStorage.removeItem('optica_custom_price_list');
+      localStorage.removeItem(PRICE_LIST_STORAGE_KEY);
       setItems(defaultPriceList);
       setEditingItemId(null);
     }

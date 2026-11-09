@@ -101,6 +101,8 @@ export default function GeneralDashboard({ localities, onSelectCampaign }) {
         localityStats[job.localidadId].jobsCount++;
       }
 
+      const isCampClosed = camp.status === 'cerrada';
+
       // Calibrado
       const cType = (job.calibradoTipo || 'Aro Completo').replace(/\s*-\s*(1\/2\s*Par|Par)/gi, '').trim();
       const cProcess = (job.calibradoProceso || 'Stock').replace(/\s*-\s*(1\/2\s*Par|Par)/gi, '').trim();
@@ -113,31 +115,31 @@ export default function GeneralDashboard({ localities, onSelectCampaign }) {
       const displayName = `${cType} (${cProcess})`;
       const calCount = isHalf ? 0.5 : 1.0;
       const basePrice = getCalibrationUnitPrice(cType, cProcess);
-      
-      const calibPrice = job.calibradoPrecio !== undefined ? job.calibradoPrecio : (isHalf ? basePrice / 2 : basePrice);
-      const calibUnitPrice = (isHalf ? calibPrice * 2 : calibPrice) || basePrice;
+      const hasSavedCalib = job.calibradoPrecio !== undefined && job.calibradoPrecio !== null;
+      const calibPrice = hasSavedCalib ? Number(job.calibradoPrecio) : (isHalf ? basePrice / 2 : basePrice);
+      const calibUnitPrice = hasSavedCalib ? (isHalf ? calibPrice * 2 : calibPrice) : basePrice;
+      const effectiveCalibUnitPrice = isCampClosed ? (calibUnitPrice || basePrice) : (basePrice || calibUnitPrice);
 
       if (!campCalibrationStats[displayName]) {
-        campCalibrationStats[displayName] = { count: 0, billing: 0, unitPrice: basePrice };
+        campCalibrationStats[displayName] = { count: 0, billing: 0, unitPrice: effectiveCalibUnitPrice };
       }
       campCalibrationStats[displayName].count += calCount;
       campCalibrationStats[displayName].billing += calibPrice;
-      if (!campCalibrationStats[displayName].unitPrice && job.calibradoPrecio !== undefined) {
-        campCalibrationStats[displayName].unitPrice = calibUnitPrice;
+      if (!campCalibrationStats[displayName].unitPrice && effectiveCalibUnitPrice) {
+        campCalibrationStats[displayName].unitPrice = effectiveCalibUnitPrice;
       }
 
       // Global Calibrations aggregation
       if (!calibrationStats[displayName]) {
-        calibrationStats[displayName] = { count: 0, billing: 0, unitPrice: basePrice };
+        calibrationStats[displayName] = { count: 0, billing: 0, unitPrice: effectiveCalibUnitPrice };
       }
       calibrationStats[displayName].count += calCount;
       calibrationStats[displayName].billing += calibPrice;
-      if (!calibrationStats[displayName].unitPrice && job.calibradoPrecio !== undefined) {
-        calibrationStats[displayName].unitPrice = calibUnitPrice;
+      if (!calibrationStats[displayName].unitPrice && effectiveCalibUnitPrice) {
+        calibrationStats[displayName].unitPrice = effectiveCalibUnitPrice;
       }
 
       // Cristales OD
-      const isCampClosed = camp.status === 'cerrada';
       if (job.cristalOD) {
         const canonical = getCanonicalLens(job.cristalOD, priceList, isCampClosed);
         const prodName = canonical.name;
@@ -376,13 +378,22 @@ export default function GeneralDashboard({ localities, onSelectCampaign }) {
                       <td className="text-right font-mono font-medium">{formatPairs(calibPairs)}</td>
                       <td className="text-right font-mono font-bold text-success">{formatMoney(campBilling)}</td>
                       <td className="text-center">
-                        <button 
-                          className="btn-icon" 
-                          onClick={() => onSelectCampaign && onSelectCampaign(camp)}
-                          title="Inspeccionar esta campaña en el Dashboard"
-                        >
-                          <ChevronRight size={18} />
-                        </button>
+                        <div className="flex-align-center justify-center gap-1">
+                          <button 
+                            className="btn btn-xs btn-outline py-1 px-2 flex-align-center gap-1" 
+                            onClick={() => onSelectCampaign && onSelectCampaign(camp, 'list')}
+                            title="Ver planilla detallada de trabajos (Modo Consulta si está cerrada)"
+                          >
+                            <Eye size={13} /> Trabajos
+                          </button>
+                          <button 
+                            className="btn-icon" 
+                            onClick={() => onSelectCampaign && onSelectCampaign(camp, 'dashboard')}
+                            title="Inspeccionar métricas en el Dashboard"
+                          >
+                            <ChevronRight size={18} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

@@ -17,10 +17,11 @@ import {
   Package,
   Eye,
   CreditCard,
-  Briefcase
+  Briefcase,
+  Lock
 } from 'lucide-react';
 import { getPriceList, getCanonicalLens } from './PriceList';
-import { subscribeCampanas, subscribeAllJobs, subscribeGastos, subscribeAllGastos, saveGasto, deleteGasto } from '../services/dataService';
+import { subscribeCampanas, subscribeTrabajos, subscribeAllJobs, subscribeGastos, subscribeAllGastos, saveGasto, deleteGasto } from '../services/dataService';
 
 // Categorías de gastos solicitadas
 const GASTO_CATEGORIAS = [
@@ -53,9 +54,9 @@ function getCalibrationUnitPrice(cType, cProcess) {
   return calProd ? (calProd.price || 0) : 0;
 }
 
-export default function FinanceModule({ activeCampaign, onSelectCampaign }) {
+export default function FinanceModule({ activeCampaign, activeJobs = [], onSelectCampaign }) {
   const [campaigns, setCampaigns] = useState([]);
-  const [allJobs, setAllJobs] = useState([]);
+  const [scopedJobs, setScopedJobs] = useState([]);
   const [selectedCampId, setSelectedCampId] = useState(activeCampaign ? activeCampaign.id : 'todas');
   const [gastos, setGastos] = useState([]);
   
@@ -71,22 +72,36 @@ export default function FinanceModule({ activeCampaign, onSelectCampaign }) {
   const [filterPagador, setFilterPagador] = useState('todos');
   const [filterCategoria, setFilterCategoria] = useState('todas');
 
-  // Subscriptions
+  // Subscribe to campaigns
   useEffect(() => {
     const unsubCamp = subscribeCampanas(setCampaigns);
-    const unsubJobs = subscribeAllJobs(setAllJobs);
-    return () => {
-      unsubCamp();
-      unsubJobs();
-    };
+    return () => unsubCamp();
   }, []);
 
-  // Update selectedCampId if activeCampaign changes and wasn't manually set
+  // Update selectedCampId if activeCampaign changes
   useEffect(() => {
-    if (activeCampaign && selectedCampId === 'todas') {
+    if (activeCampaign && selectedCampId !== 'todas' && selectedCampId !== activeCampaign.id) {
+      setSelectedCampId(activeCampaign.id);
+    } else if (activeCampaign && selectedCampId === 'todas') {
       setSelectedCampId(activeCampaign.id);
     }
-  }, [activeCampaign]);
+  }, [activeCampaign?.id]);
+
+  // Optimized Jobs loading: only fetch all historical jobs if 'todas' is selected;
+  // if viewing activeCampaign, reuse activeJobs from App (0 extra reads!).
+  useEffect(() => {
+    if (selectedCampId === 'todas') {
+      const unsub = subscribeAllJobs(setScopedJobs);
+      return () => unsub();
+    } else if (activeCampaign && selectedCampId === activeCampaign.id) {
+      setScopedJobs(activeJobs);
+    } else if (selectedCampId) {
+      const unsub = subscribeTrabajos(selectedCampId, setScopedJobs);
+      return () => unsub();
+    } else {
+      setScopedJobs([]);
+    }
+  }, [selectedCampId, activeCampaign?.id, activeJobs]);
 
   // Subscribe to gastos for selected campaign (or all)
   useEffect(() => {
@@ -114,16 +129,19 @@ export default function FinanceModule({ activeCampaign, onSelectCampaign }) {
     ? { id: 'todas', name: 'Consolidado Global de Todas las Campañas', status: 'global' }
     : campaigns.find(c => c.id === selectedCampId) || activeCampaign || { id: '', name: 'Campaña Desconocida' };
 
+  const isCurrentCampClosed = currentCampaign.status === 'cerrada';
+
   // Calculate Gross Billing for the selected scope
-  const filteredJobs = selectedCampId === 'todas' 
-    ? allJobs 
-    : allJobs.filter(j => j.campanaId === selectedCampId);
+  const filteredJobs = scopedJobs;
 
   // Calculate Exact Billing using same formula as Dashboard
   const detailedLensStats = {};
   const calibrationStats = {};
 
   filteredJobs.forEach(job => {
+    const jobCamp = campaigns.find(c => c.id === job.campanaId);
+    const isCampClosed = jobCamp?.status === 'cerrada' || (selectedCampId !== 'todas' && isCurrentCampClosed);
+
     // Calibrado
     const cType = (job.calibradoTipo || 'Aro Completo').replace(/\s*-\s*(1\/2\s*Par|Par)/gi, '').trim();
     const cProcess = (job.calibradoProceso || 'Stock').replace(/\s*-\s*(1\/2\s*Par|Par)/gi, '').trim();
@@ -134,21 +152,21 @@ export default function FinanceModule({ activeCampaign, onSelectCampaign }) {
     const displayName = `${cType} (${cProcess})`;
     const calCount = isHalf ? 0.5 : 1.0;
     const basePrice = getCalibrationUnitPrice(cType, cProcess);
-    const calibPrice = job.calibradoPrecio !== undefined ? job.calibradoPrecio : (isHalf ? basePrice / 2 : basePrice);
-    const calibUnitPrice = (isHalf ? calibPrice * 2 : calibPrice) || basePrice;
+    const hasSavedCalib = job.calibradoPrecio !== undefined && job.calibradoPrecio !== null;
+    const calibPrice = hasSavedCalib ? Number(job.calibradoPrecio) : (isHalf ? basePrice / 2 : basePrice);
+    const calibUnitPrice = hasSavedCalib ? (isHalf ? calibPrice * 2 : calibPrice) : basePrice;
+    const effectiveCalibUnitPrice = isCampClosed ? (calibUnitPrice || basePrice) : (basePrice || calibUnitPrice);
 
     if (!calibrationStats[displayName]) {
-      calibrationStats[displayName] = { count: 0, billing: 0, unitPrice: basePrice };
+      calibrationStats[displayName] = { count: 0, billing: 0, unitPrice: effectiveCalibUnitPrice };
     }
     calibrationStats[displayName].count += calCount;
     calibrationStats[displayName].billing += calibPrice;
-    if (!calibrationStats[displayName].unitPrice && job.calibradoPrecio !== undefined) {
-      calibrationStats[displayName].unitPrice = calibUnitPrice;
+    if (!calibrationStats[displayName].unitPrice && effectiveCalibUnitPrice) {
+      calibrationStats[displayName].unitPrice = effectiveCalibUnitPrice;
     }
 
     // Cristales OD
-    const jobCamp = campaigns.find(c => c.id === job.campanaId);
-    const isCampClosed = jobCamp?.status === 'cerrada' || (selectedCampId !== 'todas' && currentCampaign.status === 'cerrada');
     if (job.cristalOD) {
       const canonical = getCanonicalLens(job.cristalOD, priceList, isCampClosed);
       const prodName = canonical.name;
@@ -212,17 +230,21 @@ export default function FinanceModule({ activeCampaign, onSelectCampaign }) {
     return { ...cat, total: totalCat, porcentaje };
   });
 
-  // Handle Save Gasto
+  // Handle Save Gasto (Blocked if campaign is closed)
   const handleSaveGasto = async (e) => {
     e.preventDefault();
+    if (isCurrentCampClosed) {
+      alert("Acción bloqueada: Esta campaña está cerrada y sus finanzas se encuentran en modo de solo consulta.");
+      return;
+    }
     const numMonto = parseFloat(monto);
     if (!numMonto || numMonto <= 0) {
       alert("Por favor ingresa un monto válido mayor a 0.");
       return;
     }
 
-    if (selectedCampId === 'todas' && !activeCampaign) {
-      alert("Por favor selecciona una campaña específica para asignar el gasto.");
+    if (selectedCampId === 'todas' && (!activeCampaign || activeCampaign.status === 'cerrada')) {
+      alert("Por favor selecciona una campaña activa específica para asignar el gasto.");
       return;
     }
 
@@ -250,8 +272,13 @@ export default function FinanceModule({ activeCampaign, onSelectCampaign }) {
     }
   };
 
-  // Handle Delete Gasto
+  // Handle Delete Gasto (Blocked if campaign is closed)
   const handleDeleteGasto = async (gasto) => {
+    const gastoCamp = campaigns.find(c => c.id === gasto.campanaId);
+    if (isCurrentCampClosed || gastoCamp?.status === 'cerrada') {
+      alert("Acción bloqueada: No se pueden eliminar gastos de una campaña cerrada.");
+      return;
+    }
     if (window.confirm(`¿Estás seguro de eliminar el gasto "${gasto.observacion || gasto.categoria}" por ${formatMoney(gasto.monto)}?`)) {
       try {
         await deleteGasto(gasto.id, gasto.campanaId);
@@ -519,105 +546,117 @@ export default function FinanceModule({ activeCampaign, onSelectCampaign }) {
         {/* Left Column: Form & Registered Expenses Table */}
         <div className="flex-column gap-4">
           
-          {/* Formulario de Carga Rápida */}
-          <div className="glass-card p-4 border border-color">
-            <h3 className="m-0 mb-3 flex-align-center gap-2 text-primary">
-              <Plus size={20} />
-              Registrar Nuevo Gasto de Campaña
-            </h3>
+          {/* Formulario de Carga Rápida (Protegido si la campaña está cerrada) */}
+          {isCurrentCampClosed ? (
+            <div className="glass-card p-4 border border-warning-soft flex-align-center gap-3" style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(22, 28, 45, 0.95) 100%)' }}>
+              <Lock size={24} className="text-warning flex-shrink-0" />
+              <div>
+                <strong className="text-warning block">Campaña Cerrada • Finanzas en Modo Consulta</strong>
+                <span className="text-secondary font-xs">
+                  Los gastos y balances de <strong>{currentCampaign.name}</strong> están congelados y protegidos contra modificaciones accidentales.
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="glass-card p-4 border border-color">
+              <h3 className="m-0 mb-3 flex-align-center gap-2 text-primary">
+                <Plus size={20} />
+                Registrar Nuevo Gasto de Campaña
+              </h3>
 
-            <form onSubmit={handleSaveGasto} className="flex-column gap-3">
-              <div className="grid-3 gap-3">
-                {/* Monto */}
-                <div className="form-group">
-                  <label className="font-semibold text-secondary font-xs">Monto ($) *</label>
-                  <div className="input-icon-container mt-1">
-                    <DollarSign size={16} className="input-icon text-muted" />
+              <form onSubmit={handleSaveGasto} className="flex-column gap-3">
+                <div className="grid-3 gap-3">
+                  {/* Monto */}
+                  <div className="form-group">
+                    <label className="font-semibold text-secondary font-xs">Monto ($) *</label>
+                    <div className="input-icon-container mt-1">
+                      <DollarSign size={16} className="input-icon text-muted" />
+                      <input 
+                        type="number"
+                        step="any"
+                        min="1"
+                        className="form-control font-bold"
+                        style={{ paddingLeft: '32px' }}
+                        placeholder="Ej: 45000"
+                        value={monto}
+                        onChange={(e) => setMonto(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Pagado Por */}
+                  <div className="form-group">
+                    <label className="font-semibold text-secondary font-xs">¿Quién lo pagó? *</label>
+                    <select 
+                      className="form-control font-semibold mt-1"
+                      value={pagadoPor}
+                      onChange={(e) => setPagadoPor(e.target.value)}
+                    >
+                      <option value="Jere">👤 Jere (Bolsillo Jere)</option>
+                      <option value="Isa">👤 Isa (Bolsillo Isa)</option>
+                      <option value="Caja">🏢 Caja / Sociedad</option>
+                    </select>
+                  </div>
+
+                  {/* Categoría */}
+                  <div className="form-group">
+                    <label className="font-semibold text-secondary font-xs">Categoría de Gasto *</label>
+                    <select 
+                      className="form-control mt-1"
+                      value={categoria}
+                      onChange={(e) => setCategoria(e.target.value)}
+                    >
+                      {GASTO_CATEGORIAS.map(cat => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid-2-1 gap-3">
+                  {/* Detalle / Observación */}
+                  <div className="form-group">
+                    <label className="font-semibold text-secondary font-xs">Detalle / Observación</label>
                     <input 
-                      type="number"
-                      step="any"
-                      min="1"
-                      className="form-control font-bold"
-                      style={{ paddingLeft: '32px' }}
-                      placeholder="Ej: 45000"
-                      value={monto}
-                      onChange={(e) => setMonto(e.target.value)}
-                      required
+                      type="text"
+                      className="form-control mt-1"
+                      placeholder="Ej: Bifocales Foto Gris, Org Blue c/ Ar, Calibrados Lab, Comisionista Madryn, Cajas..."
+                      value={observacion}
+                      onChange={(e) => setObservacion(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Fecha */}
+                  <div className="form-group">
+                    <label className="font-semibold text-secondary font-xs">Fecha</label>
+                    <input 
+                      type="date"
+                      className="form-control mt-1"
+                      value={fecha}
+                      onChange={(e) => setFecha(e.target.value)}
                     />
                   </div>
                 </div>
 
-                {/* Pagado Por */}
-                <div className="form-group">
-                  <label className="font-semibold text-secondary font-xs">¿Quién lo pagó? *</label>
-                  <select 
-                    className="form-control font-semibold mt-1"
-                    value={pagadoPor}
-                    onChange={(e) => setPagadoPor(e.target.value)}
+                <div className="flex-between align-center mt-2">
+                  <span className="text-muted font-xs">
+                    Se asignará a: <strong>{currentCampaign.name}</strong>
+                  </span>
+                  <button 
+                    type="submit" 
+                    className="btn btn-primary flex-align-center gap-2 px-4"
+                    disabled={isSubmitting}
                   >
-                    <option value="Jere">👤 Jere (Bolsillo Jere)</option>
-                    <option value="Isa">👤 Isa (Bolsillo Isa)</option>
-                    <option value="Caja">🏢 Caja / Sociedad</option>
-                  </select>
+                    <Plus size={16} />
+                    {isSubmitting ? 'Guardando...' : 'Registrar Gasto'}
+                  </button>
                 </div>
-
-                {/* Categoría */}
-                <div className="form-group">
-                  <label className="font-semibold text-secondary font-xs">Categoría de Gasto *</label>
-                  <select 
-                    className="form-control mt-1"
-                    value={categoria}
-                    onChange={(e) => setCategoria(e.target.value)}
-                  >
-                    {GASTO_CATEGORIAS.map(cat => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid-2-1 gap-3">
-                {/* Detalle / Observación */}
-                <div className="form-group">
-                  <label className="font-semibold text-secondary font-xs">Detalle / Observación</label>
-                  <input 
-                    type="text"
-                    className="form-control mt-1"
-                    placeholder="Ej: Bifocales Foto Gris, Org Blue c/ Ar, Calibrados Lab, Comisionista Madryn, Cajas..."
-                    value={observacion}
-                    onChange={(e) => setObservacion(e.target.value)}
-                  />
-                </div>
-
-                {/* Fecha */}
-                <div className="form-group">
-                  <label className="font-semibold text-secondary font-xs">Fecha</label>
-                  <input 
-                    type="date"
-                    className="form-control mt-1"
-                    value={fecha}
-                    onChange={(e) => setFecha(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="flex-between align-center mt-2">
-                <span className="text-muted font-xs">
-                  Se asignará a: <strong>{currentCampaign.name}</strong>
-                </span>
-                <button 
-                  type="submit" 
-                  className="btn btn-primary flex-align-center gap-2 px-4"
-                  disabled={isSubmitting}
-                >
-                  <Plus size={16} />
-                  {isSubmitting ? 'Guardando...' : 'Registrar Gasto'}
-                </button>
-              </div>
-            </form>
-          </div>
+              </form>
+            </div>
+          )}
 
           {/* Tabla de Gastos */}
           <div className="glass-card p-4 border border-color">
@@ -713,13 +752,19 @@ export default function FinanceModule({ activeCampaign, onSelectCampaign }) {
                             {formatMoney(gasto.monto)}
                           </td>
                           <td className="text-center">
-                            <button 
-                              className="btn-icon text-danger hover-danger"
-                              onClick={() => handleDeleteGasto(gasto)}
-                              title="Eliminar este gasto"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                            {(isCurrentCampClosed || campaigns.find(c => c.id === gasto.campanaId)?.status === 'cerrada') ? (
+                              <span className="text-muted font-xs" title="Campaña cerrada (Protegido)">
+                                <Lock size={14} />
+                              </span>
+                            ) : (
+                              <button 
+                                className="btn-icon text-danger hover-danger"
+                                onClick={() => handleDeleteGasto(gasto)}
+                                title="Eliminar este gasto"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            )}
                           </td>
                         </tr>
                       );
